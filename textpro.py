@@ -2,6 +2,11 @@
 
 
 '''
+# Comparable text miner
+
+# Description 
+Comparable document miner: Arabic-English morphological analysis, text processing, n-gram features extraction, POS tagging, dictionary translation, documents alignment, corpus information, text classification, tf-idf computation, text similarity computation, HTML documents cleaning 
+
 This code is implemented by Motaz SAAD (motaz.saad@gmail.com) during my PhD work. My PhD thesis is available at:
 
 https://sites.google.com/site/motazsite/Home/publications/saad_phd.pdf
@@ -17,21 +22,19 @@ Motaz Saad. Mining Documents and Sentiments in Cross-lingual Context. PhD thesis
 }
 
 
-This code processes Arabic and English text.
-
-
-
-
-To use this code, load it as follows:
+This code processes Arabic and English text. To use this software, load it as follows:
 
 import imp
-tp = imp.load_source('textpro', '/home/motaz/Dropbox/phd/scripts/python/text_processing/textpro.py')
+tp = imp.load_source('textpro', 'textpro.py')
 
 You have to change the path to refer to the place of the file in your machine. Then, you can use functions as follows:
 
 clean_text = process_text(text)
 
 
+
+# Dependencies
+This software depends on the following python packages scipy, numpy, nltk, sklearn, bs4. Please make sure that they are installed before using this software. 
 
 '''
 
@@ -65,27 +68,28 @@ import re
 whiteSpace = re.compile(r'\s+')
 
 #import imp
-#tp = imp.load_source('textpro', '/home/motaz/Dropbox/phd/scripts/python/text_processing/textpro.py')
+#tp = imp.load_source('textpro', 'textpro.py')
 
 
 ##################################################################
 
+# Arabic diacritics
 arabic_punct = ''' ` ÷ × ؛ < > _ ( ) * & ^ % ] [ ـ ، / : " ؟ . , ' { } ~ ¦ + | !  ”  …  “ –   ـ  '''
-arabic_dicritis = '''  َ     ُ       ِ      ّ       ً      ٌ       ٍ      ْ     '''
+arabic_diacritics = '''  َ     ُ       ِ      ّ       ً      ٌ       ٍ      ْ     '''
 
 arabic_punctUnicode = arabic_punct.decode('utf-8')
 arabic_punct = arabic_punct.split()
 arabic_punctUnicode = arabic_punctUnicode.split()
 
-arabic_dicritis_unicode = arabic_dicritis.decode('utf-8')
-arabic_dicritis = arabic_dicritis.split()
-arabic_dicritis_unicode = arabic_dicritis_unicode.split()
+arabic_diacritics_unicode = arabic_diacritics.decode('utf-8')
+arabic_diacritics = arabic_diacritics.split()
+arabic_diacritics_unicode = arabic_dicritis_unicode.split()
 
 english_punt = list(string.punctuation)
 english_puntUnicode = list(string.punctuation.decode('utf-8'))
 
 # Arabic punctuations and dicritis + English and Arabic
-punctuations = set( english_punt + english_puntUnicode + arabic_punct + arabic_punctUnicode + arabic_dicritis + arabic_dicritis_unicode)
+punctuations = set( english_punt + english_puntUnicode + arabic_punct + arabic_punctUnicode + arabic_diacritics + arabic_diacritics_unicode)
 
 englishStopWords = stopwords.words('english')
 englishStopWords_unicode = ' '.join(englishStopWords).decode('utf-8').split()
@@ -373,14 +377,13 @@ def split_corpus(source_corpus, target_corpus, percentage):
 
 
 # load WordNet (WN) dictionaries
-# These dictionaries are available at:
+# Dictionaries are obtained from Open Multilingual Wordnet website: http://compling.hss.ntu.edu.sg/omw/
 
-# cite:
+# To cite these dictionaries:
+# Francis Bond and Kyonghee Paik (2012), A survey of wordnets and their licenses In Proceedings of the 6th Global WordNet Conference (GWC 2012). Matsue. 64–71.
 
-# You have to change the path to refer to the place of the files in your machine.
-
-eng_dict_file = '/home/motaz/Dropbox/phd/dictionaries/omw/eng/wn-data-eng.tab'
-arb_dict_file = '/home/motaz/Dropbox/phd/dictionaries/omw/arb/wn-nodia-arb.tab'
+eng_dict_file = 'wn-data-eng.tab'
+arb_dict_file = 'wn-data-arb.tab'
 
 
 eng_dict_lines = open(eng_dict_file).readlines()
@@ -393,7 +396,7 @@ arb_dict_key = []; arb_dict_word = [];
 
 
 for l in eng_dict_lines:
-	tokens = l.split()
+	tokens = l.split('\t')
 	key = tokens[0][:-2]
 	eng_dict_key.append(key)
 	word = tokens[2].decode('utf-8')
@@ -401,7 +404,7 @@ for l in eng_dict_lines:
 
 
 for l in arb_dict_lines:
-	tokens = l.split()
+	tokens = l.split('\t')
 	key = tokens[0][:-2]
 	arb_dict_key.append(key)
 	word = tokens[2].decode('utf-8')
@@ -409,10 +412,7 @@ for l in arb_dict_lines:
 
 ###################################################################################
 
-
 # translation functions using WN bilingual dictionaries
-
-
 def translate_en2ar(word):
 	translations = []
 	keys = []
@@ -428,7 +428,6 @@ def translate_en2ar(word):
 	return set(translations)
 
 ###################################################################################
-
 
 def translate_ar2en(word):
 	translations = []
@@ -448,8 +447,6 @@ def translate_ar2en(word):
 ##################################################################################
 ##################################################################################
 
-
-
 # binary similarity between two binary vectors
 def sim_bin(s_vector,t_vector): return 1 - distance.jaccard(s_vector, t_vector)
 
@@ -464,14 +461,9 @@ def sim_cosine(s_vector,t_vector): return 1 - distance.cosine(s_vector, t_vector
 def tf_idf(word, document, corpus):
 	base = 10
 	corpus_size = float(len(corpus))
-
-
 	tf =  document.count(word)
-
 	doc_freq = float ( sum(1 for doc in corpus if word in doc) )
-
 	idf = math.log( (corpus_size /  doc_freq ), base )
-
 	tf_idf = tf * idf
 
 	return tf_idf
