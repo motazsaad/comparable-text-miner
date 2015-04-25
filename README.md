@@ -22,8 +22,10 @@ This software depends on the following python packages scipy, numpy, nltk, sklea
 # References
 This software uses the following resources:
 - Arabic stopwords: http://www.ranks.nl/stopwords/arabic 
-- Open Multilingual WordNet dictionaries http://compling.hss.ntu.edu.sg/omw/
+- Open Multilingual WordNet (OMW) dictionaries http://compling.hss.ntu.edu.sg/omw/ The references of OMW is listed below:
+
 Francis Bond and Kyonghee Paik (2012), A survey of wordnets and their licenses In Proceedings of the 6th Global WordNet Conference (GWC 2012). Matsue. 64–71.
+
 Francis Bond and Ryan Foster (2013), Linking and extending an open multilingual wordnet. In 51st Annual Meeting of the Association for Computational Linguistics: ACL-2013. Sofia. 1352–1362. 
 
 In addition, this software modifies the ISRI Arabic Stemmer, which is a rooting algorithm for Arabic text, to perform light stemming for Arabic words. The reference of ISRI Arabic Stemmer is below:
