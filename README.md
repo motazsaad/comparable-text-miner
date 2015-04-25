@@ -9,12 +9,12 @@ Motaz Saad. Mining Documents and Sentiments in Cross-lingual Context. PhD thesis
 
 This code processes Arabic and English text. To use this software, load it as follows:
 
+```python
 import imp
 tp = imp.load_source('textpro', 'textpro.py')
-
-Then, you can use functions as follows:
-
+#Then, you can use functions as follows:
 clean_text = process_text(text)
+```
 
 # Dependencies
 This software depends on the following python packages scipy, numpy, nltk, sklearn, bs4. Please make sure that they are installed before using this software. 
