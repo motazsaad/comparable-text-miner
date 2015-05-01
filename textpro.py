@@ -358,8 +358,8 @@ def split_corpus(source_corpus, target_corpus, percentage):
 # Francis Bond and Kyonghee Paik (2012), A survey of wordnets and their licenses In Proceedings of the 6th Global WordNet Conference (GWC 2012). Matsue. 64–71.
 # Francis Bond and Ryan Foster (2013), Linking and extending an open multilingual wordnet. In 51st Annual Meeting of the Association for Computational Linguistics: ACL-2013. Sofia. 1352–1362. 
 
-eng_dict_file = 'wn-data-eng.tab'
-arb_dict_file = 'wn-data-arb.tab'
+eng_dict_file = 'wordnet/wn-data-eng.tab'
+arb_dict_file = 'wordnet/wn-data-arb.tab'
 
 
 eng_dict_lines = open(eng_dict_file).readlines()
