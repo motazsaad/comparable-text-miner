@@ -83,7 +83,7 @@ arabic_punctUnicode = arabic_punctUnicode.split()
 
 arabic_diacritics_unicode = arabic_diacritics.decode('utf-8')
 arabic_diacritics = arabic_diacritics.split()
-arabic_diacritics_unicode = arabic_dicritis_unicode.split()
+arabic_diacritics_unicode = arabic_diacritics_unicode.split()
 
 english_punt = list(string.punctuation)
 english_puntUnicode = list(string.punctuation.decode('utf-8'))
@@ -96,7 +96,8 @@ englishStopWords_unicode = ' '.join(englishStopWords).decode('utf-8').split()
 
 # Arabic stopwords. This list are obtained from http://www.ranks.nl/stopwords/arabic 
 
-asw = 'أنفسنا مثل حيث ذلك بشكل لدى عن لنا إلى فقط الذي الذى لم او أكثر اي أنا أنت له اذا كيف منها اكثر أي أن وكان وفي سوف حين نفسها هكذا قبل أو حول هنا على لكن فيه عليه قليل صباحا لهم بان يكون خارج هناك مع فوق ما لا هذه و فيها نفسه دون ل آخر ثانية انه من جدا إضافي به بن بعض بها هم أيضا كانت هي لها نحن تم أنفسهم ينبغي وقالت عليها فان لماذا عند وجود الى غير قد عندما مرة هؤلاء إذا كل يمكن أنفسكم فعل ثم لي الآن فى في ديك هذا لن ايضا الذين ليس التى التي وان بعد حتى ان معظم وقد يجري كلا لك ضد انها كان لديه ولا بين خلال وقال بعيدا كما نفسي نحو هو نفسك ولم وهي لقاء وكانت بسبب حاليا ومن الا اما وهو تحت'
+asw = open('stopwords.txt').read()
+
 aswUinicode = asw.decode('utf-8')
 arabicStopWords =  asw.split() + aswUinicode.split()
 
@@ -113,17 +114,18 @@ all_stopwords = set(englishStopWords + englishStopWords_unicode + arabicStopWord
 ###################################################################################
 
 # remove punctcutions
-def rm_punct(word):
+def remove_punct(word):
 	for c in word: return ''.join(ch for ch in word if not ch in punctuations) # remove punctuation
 ###################################################################################
 
-# return the word list (tonkized words)
+# takes a string of text and returns the word list (tonkized words)
+# processing includes: removing diacritics and punctcutions, removing stopwords, and tokenizing
 def process_text(text, removePunct=True, removeSW=True, removeNum=False):
 	text = remove_diacritics(text)# remove arabic diacritics
 	word_list = nltk.tokenize.wordpunct_tokenize(text.lower())
 	if removePunct:
 		word_list = [ w for w in word_list if not w in punctuations ]
-		word_list = [ rm_punct(w) for w in word_list ]
+		word_list = [ remove_punct(w) for w in word_list ]
 	if removeSW: word_list = [ w for w in word_list if not w in all_stopwords ]
 	if removeNum: word_list = [ w for w in word_list if not w.isdigit() ]
 	word_list = [ w for w in word_list if w]# remove empty words
@@ -131,6 +133,11 @@ def process_text(text, removePunct=True, removeSW=True, removeNum=False):
 	return word_list
 ###################################################################################
 
+# remove arabic diacritics
+def remove_diacritics(text):
+	arstemmer = ISRIStemmer()
+	result = arstemmer.norm(text, num=1) #  remove diacritics which representing Arabic short vowels
+	return result
 ###################################################################################
 
 """
@@ -156,80 +163,48 @@ increases the word ambiguities and changes the original root.
 """
 
 
-# return the root for arabic text
-def getRootAr(text):
-	result = None
+# takes a word list and returns the root for each Arabic words
+def getRootAr(word_list):
+	result = []
 	arstemmer = ISRIStemmer()
-	if text.split() == 1: result =  arstemmer.stem(text) # one word
-	elif text.split() > 1: # mutiple words i.e. text
-		resultList = []
-		tok = text.split()
-		for t in tok: resultList.append(arstemmer.stem(t))
-		result = ' '.join(resultList)
-	return result
+	for word in word_list: result.append(arstemmer.stem(word))
+	return ' '.join(result)
 ###################################################################################
 
 # Arabic light stemming for Arabic text
-def lightStemAr(text):
+# takes a word list and perform light stemming for each Arabic words
+def lightStemAr(word_list):
+	result = []
 	arstemmer = ISRIStemmer()
-	result = None
-	if text.split() == 1: # one word
-		arstemmer.stm = text
-		arstemmer.norm(1)       #  remove diacritics which representing Arabic short vowels
-		if not arstemmer.stm in arstemmer.stop_words:   # exclude stop words from being processed
-			arstemmer.pre32()        # remove length three and length two prefixes in this order
-			arstemmer.suf32()        # remove length three and length two suffixes in this order
-			arstemmer.waw()          # remove connective ‘و’ if it precedes a word beginning with ‘و’
-			arstemmer.norm(2)       # normalize initial hamza to bare alif
-		result = arstemmer.stm
-	elif text.split() > 1: # mutiple words i.e. text
-		resultList = []
-		tok = text.split()
-		for t in tok:
-			arstemmer.stm = t
-			arstemmer.norm(1)       #  remove diacritics which representing Arabic short vowels
-			if not arstemmer.stm in arstemmer.stop_words:   # exclude stop words from being processed
-				arstemmer.pre32()        # remove length three and length two prefixes in this order
-				arstemmer.suf32()        # remove length three and length two suffixes in this order
-				arstemmer.waw()          # remove connective ‘و’ if it precedes a word beginning with ‘و’
-				arstemmer.norm(2)       # normalize initial hamza to bare alif
-			resultList.append(arstemmer.stm)
-		result = ' '.join(resultList)
-	return result
+	for word in word_list:
+		word = arstemmer.norm(word, num=1)  #  remove diacritics which representing Arabic short vowels  
+		if not word in arstemmer.stop_words:   # exclude stop words from being processed
+			word = arstemmer.pre32(word)        # remove length three and length two prefixes in this order
+			word = arstemmer.suf32(word)        # remove length three and length two suffixes in this order
+			word = arstemmer.waw(word)          # remove connective ‘و’ if it precedes a word beginning with ‘و’
+			word = arstemmer.norm(word, num=2)       # normalize initial hamza to bare alif
+		result.append(word)
+	return ' '.join(result)
 
 ###################################################################################
 
 # combine rooting and light stemming: if light stemming alogrithm manage to reduce word form, then the light stem is returned, else, the root is returned
-def arMorph(text):
-	result = None
-	if text.split() == 1: # the text is one word
-		root = getRootAr(text)
-		lightStem = lightStemAr(text)
-		if t == lightStem: result = root
-		else: result = lightStem
-	elif text.split() > 1: # the text is mutiple words
-		resultList = []
-		tok = text.split()
-		for t in tok:
-			sol = None
-			root = getRootAr(t)
-			lightStem = lightStemAr(t)
-			if t == lightStem: sol = root
-			else: sol = lightStem
-			resultList.append(sol)
-		result = ' '.join(resultList)
-	return result
+def arMorph(text_list):
+	result = []
+	for word in word_list:
+		sol = None
+		root = getRootAr(word)
+		lightStem = lightStemAr(word)
+		if t == lightStem: sol = root
+		else: sol = lightStem
+		result.append(sol)
+	return ' '.join(result)
 
 ###################################################################################
 
-# remove arabic diacritics
-def remove_diacritics(text):
-	arstemmer = ISRIStemmer()
-	result = None
-	arstemmer.stm = text
-	arstemmer.norm(1)       #  remove diacritics which representing Arabic short vowels
-	result = arstemmer.stm
-	return result
+# execlude stopwords from a list of words
+def exclude_stopwords(word_list):
+	return [ w for w in word_list if not w in all_stopwords ]
 
 ###################################################################################
 
