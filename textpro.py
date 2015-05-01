@@ -361,50 +361,40 @@ def split_corpus(source_corpus, target_corpus, percentage):
 eng_dict_file = 'wordnet/wn-data-eng.tab'
 arb_dict_file = 'wordnet/wn-data-arb.tab'
 
-
 eng_dict_lines = open(eng_dict_file).readlines()
 arb_dict_lines = open(arb_dict_file).readlines()
-
-
 
 eng_dict_key = []; eng_dict_word = [];
 arb_dict_key = []; arb_dict_word = [];
 
-
 for l in eng_dict_lines:
 	tokens = l.split('\t')
-	key = tokens[0][:-2]
+	key = tokens[0][:-2].strip()
 	eng_dict_key.append(key)
-	word = tokens[2].decode('utf-8')
+	word = tokens[2].strip().decode('utf-8')
 	eng_dict_word.append(word)
-
 
 for l in arb_dict_lines:
 	tokens = l.split('\t')
-	key = tokens[0][:-2]
+	key = tokens[0][:-2].strip()
 	arb_dict_key.append(key)
-	word = tokens[2].decode('utf-8')
+	word = tokens[2].strip().decode('utf-8')
 	arb_dict_word.append(word)
 
 ###################################################################################
-
 # translation functions using WN bilingual dictionaries
 def translate_en2ar(word):
 	translations = []
 	keys = []
-
 	for i in range(len(eng_dict_word)):
 		if word == eng_dict_word[i]: keys.append(eng_dict_key[i])
 
 	for i in range(len(arb_dict_key)):
 		for j in range(len(keys)):
-			if keys[j] == arb_dict_key[i]:
-				translations.append(arb_dict_word[i])
+			if keys[j] == arb_dict_key[i]: translations.append(arb_dict_word[i])
 
 	return set(translations)
-
 ###################################################################################
-
 def translate_ar2en(word):
 	translations = []
 	keys = []
@@ -414,11 +404,9 @@ def translate_ar2en(word):
 
 	for i in range(len(eng_dict_key)):
 		for j in range(len(keys)):
-			if keys[j] == eng_dict_key[i]:
-				translations.append(eng_dict_word[i])
+			if keys[j] == eng_dict_key[i]: translations.append(eng_dict_word[i])
 
 	return set(translations)
-
 ##################################################################################
 ##################################################################################
 ##################################################################################
