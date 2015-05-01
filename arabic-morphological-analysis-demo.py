@@ -2,8 +2,12 @@
 
 import sys
 ##################################################################
+#Example Usage:
+#python arabic-morphological-analysis-demo.py test-text-files/test-in.ar.txt test-text-files/test-out.ar.txt
+
 def usage():
 	print 'Usage: ', sys.argv[0], '<inputfile> <outputfile>'
+	print 'python arabic-morphological-analysis-demo.py test-text-files/test-in.ar.txt test-text-files/test-out.ar.txt'
 ##################################################################
 
 if len(sys.argv) < 3: usage(); sys.exit(2)
@@ -26,10 +30,6 @@ The difference between ISRI Arabic Stemmer and The Khoja stemmer is that ISRI st
 
 
 Light stemming for Arabic words is to remove common affix (prefix and suffix) from words, but it does not convert words into their root form.
-
-Example Usage:
-
-python arabic-morphological-analysis-demo.py test-text-files/test-in.ar.txt test-text-files/test-out.ar.txt
 
 '''
 
