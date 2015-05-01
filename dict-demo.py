@@ -2,8 +2,15 @@
 
 import sys
 ##################################################################
+#Example usage:
+#python dict-demo.py test-text-files/dict-test-ar-input.txt test-text-files/dict-out.txt ar
+#python dict-demo.py test-text-files/dict-test-en-input.txt test-text-files/dict-out.txt en 
+
 def usage():
 	print 'Usage: ', sys.argv[0], '<inputfile> <outputfile> <source language>'
+	print 'python dict-demo.py test-text-files/dict-test-ar-input.txt test-text-files/dict-out.txt ar'
+	print 'python dict-demo.py test-text-files/dict-test-en-input.txt test-text-files/dict-out.txt en'
+
 ##################################################################
 
 if len(sys.argv) < 4: usage(); sys.exit(2)
@@ -29,20 +36,24 @@ tp = imp.load_source('textpro', 'textpro.py')
 def main(argv):
 	inputfile = sys.argv[1]
 	outputfile = sys.argv[2]
-	source_language = sys.argv[3]
+	source_language = sys.argv[3].strip()
+	print 'source language:', source_language
 	text = open(inputfile).read().decode('utf-8')
-	print text
-	text = tp.process_text(text)
+	word_list = tp.process_text(text)
 	result = [] 
-	for word in text:
-		translations = []
-		if source_language == 'ar': translations = tp.translate_ar2en(word)
-		if source_language == 'en': translations = tp.translate_en2ar(word)
-		for t in translations: result.append(t.strip())
+	if source_language == 'ar':
+		for word in word_list:
+			translations = []
+			translations =  tp.translate_ar2en(word)
+			for t in translations: result.append(t.strip())
+	if source_language == 'en':
+		for word in word_list:
+			translations = tp.translate_en2ar(word)
+			for t in translations: result.append(t.strip())
 
 	output_text = ' '.join(result)
 	output = open(outputfile, 'w')
-	print>>output, output_text
+	print>>output, output_text.encode('utf-8')
 	output.close()
 
 
