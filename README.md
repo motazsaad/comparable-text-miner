@@ -32,4 +32,15 @@ This software uses the following resources:
 
 - This software modifies the ISRI Arabic Stemmer to perform light stemming for Arabic words. 
 
-
+# Usage examples (demos)
+- Dictionary translation demo
+```
+python dict-demo.py <inputfile> <outputfile> <source language>
+python dict-demo.py test-text-files/dict-test-ar-input.txt test-text-files/dict-out.txt ar
+python dict-demo.py test-text-files/dict-test-en-input.txt test-text-files/dict-
+```
+- Arabic morphological analysis demo
+```
+python arabic-morphological-analysis-demo.py <inputfile> <outputfile>
+python arabic-morphological-analysis-demo.py test-text-files/test-in.ar.txt test-text-files/test-out.ar.txt
+```
