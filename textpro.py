@@ -497,3 +497,139 @@ def find_between(text , first, last ):
 	except ValueError:
 		return ""
 ##################################################################################
+
+def prepare_gensim_corpus(corpus_name, corpus_path, corpus_type, language, min_freq=5, doc_separator='\nXXXXXXX\n'):
+	
+	print 'building gensim corpus and dictionary for', corpusName, lang, 'corpora'
+	corpus_file = corpus_path + corpus_name
+	train = None
+	if corpus_type == 'comparable':
+		train = open(corpus_file).read().decode('utf-8').split(doc_separator); del train[-1]
+	elif: corpus_type == 'parallel':
+		train = open(corpus_file).read().decode('utf-8').splitlines()
+	else: print 'corpus type is not supported... The corpus should be parallel or comparable'; return None;
+	
+	print 'loading corpus'
+	texts = [[word for word in tp.process_text(document, removePunct=True, removeSW=True, removeNum=True)] for document in train]
+	print 'tokenizing'
+	all_tokens = [item for sublist in texts1 for item in sublist]
+	print 'mark tokens which have frequency less than', min_freq
+	tokens_once = set([k for k, v in Counter(all_tokens).iteritems() if v < min_freq ])
+	print '|D|=' , len(texts)
+	print 'filter low frequency tokens'
+	texts = [[word for word in text if word not in tokens_once] for text in texts]
+	print '|D|=' , len(texts)
+	print 'building dictionary'
+	dictionary = corpora.Dictionary(texts)
+	print 'saving dictionary'
+	dictFile = corpus_file + corpusName + '.dict'
+	dictionary.save(dictFile) 
+	print 'building corpus in  mm format'
+	corpus = [dictionary.doc2bow(text) for text in texts]
+	print 'saving corpus'
+	corpusFile = corpus_file + corpusName + '.mm'
+	corpora.MmCorpus.serialize(corpusFile, corpus)
+	print 'computing tfidf'
+	tfidf = models.TfidfModel(corpus) # tfidf model 
+	corpus_tfidf = tfidf[corpus] # tfidf corpus 
+	print 'saving tfidf corpus'
+	corpus_tfidf_file = corpus_file + corpusName + '.tfidf.mm'
+	corpora.MmCorpus.serialize(corpus_tfidf_file, corpus_tfidf)
+	print 'gensim corpus is ready'
+##################################################################################
+	
+def build_lsi_model(corpus_name, corpus_path, topics=300):
+	print 'building lsi model for', corpus_name, 'corpus'
+	dictFile = corpus_file + corpus_name + '.dict'
+	corpus_tfidf_file = corpus_file + corpus_name + '.tfidf.mm'
+	
+	print 'loading dictionary ...'
+	dictionary = corpora.Dictionary.load(dictFile)
+	print 'loading tfidf corpus ...'
+	corpus_tfidf = corpora.MmCorpus(corpus_tfidf_file)
+	print 'building lsi model'
+	lsi = models.LsiModel(corpus_tfidf, id2word=dictionary, num_topics=topics)
+	print 'saving lsi'
+	lsiFile = corpus_file + corpus_name + '.lsi'
+	lsi.save(lsiFile)
+	print 'lsi model is ready'
+##################################################################################
+
+
+def aligning_documents(corpus_path, source_corpus_name, target_corpus_name, source_language, target_language, top_n, doc_separator='\nXXXXXXX\n', model_path, model_name, output_path):
+	print 'aligning', source_corpus_name, 'with', target_corpus_name, 'using LSI'
+	
+	dictionaryFile = model_path +  model_name + '.dict'
+	lsiFile = model_path +  model_name + '.lsi'
+	
+	
+	dictionary = corpora.Dictionary.load(dictionaryFile) ; print 'dictionary loaded'
+	lsi = models.LsiModel.load(lsiFile) ; print 'lsi model loaded'
+		
+	source_corpus = open(corpus_path + source_corpus_name).read().decode('utf-8').split(doc_separator) 
+	target_corpus = open(corpus_path + target_corpus_name).read().decode('utf-8').split(doc_separator) 
+	print 'source and target corpora loaded'
+	del source_corpus[-1] ; del target_corpus[-1]
+	print '# of source docs', len(source_corpus), '\t# of target docs', len(target_corpus)
+	
+	source_lsi_corpus = generateLSIvectors(source_corpus, dictionary, lsi); print 'projects source_corpus into LSI space'
+	target_lsi_corpus = generateLSIvectors(target_corpus, dictionary, lsi); print 'projects target_corpus into LSI space'	
+	
+	allSims = [] ; doc_tuple = [] ; source_index = 0 
+	
+	
+	for d in source_lsi_corpus:
+		target_index, sim = getComparable(d, target_lsi_corpus)
+		allSims.append(sim)
+		source_doc = source_corpus[source_index] ; target_doc = target_corpus[target_index]
+		del target_lsi_corpus[target_index] ; del target_corpus[target_index] # remove the already aligned document from the target corpus
+		doc_tuple.append((source_index,target_index, source_doc, target_doc))
+		if not target_lsi_corpus: break # all target docs are aligned
+		source_index+=1
+		
+	sortedAllSims = sorted(enumerate(allSims), key=lambda item: -item[1])
+	topNList = sortedAllSims[:top_n]
+	out = open (output + 'results.txt', 'w')
+	count = 0
+	print '\n#, src, target, sim'
+	for e in topNList:
+		i, sim = e
+		srcIndx = doc_tuple[i][0] ; targetIndx = doc_tuple[i][1] ; sdoc = doc_tuple[i][2] ; tdoc = doc_tuple[i][3]
+		print count, srcIndx, targetIndx, '%0.2f' % sim
+		print>>out, count, srcIndx, targetIndx, '%0.2f' % sim
+		source_out = open(output_path + str(count) + '.' + source_language, 'w')
+		targetout = open(output_path + str(count) + '.' + target_language, 'w')
+		print>>srcout, sdoc.encode('utf-8')
+		print>>targetout, tdoc.encode('utf-8')
+		srcout.close(); targetout.close(); count+=1	
+	out.close();
+	print 'aligning', source_corpus_name, 'with', target_corpus_name, 'using LSI is done!'
+##################################################################################
+# projecting a corpus into LSI space
+def generateLSIvectors(corpus, dictionary, lsi):
+	LSIcorpus = []
+	for d in corpus:		
+		vec_bow = dictionary.doc2bow(tp.process_text(d))
+		vec_lsi = lsi[vec_bow] 
+		LSIcorpus.append(vec_lsi)
+	return LSIcorpus
+##################################################################################
+# given a source doc, get the most comparable document from the target corpus
+# returns the index of the target document in the the target corpus
+def getComparable(source_lsi_doc, target_lsi_corpus):
+	sims = []
+	for i in range(len(target_lsi_corpus)):
+		sims.append( matutils.cossim(source_lsi_doc, target_lsi_corpus[i]) )
+	sortedSims = sorted(enumerate(sims), key=lambda item: -item[1])
+	topIndex = sortedSims[0][0]
+	topSim = sortedSims[0][1]
+	return sortedSims[0]
+
+
+##################################################################################
+
+
+
+
+
+##################################################################################
