@@ -55,3 +55,9 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# gensim stuff
+*.dict
+*.mm
+*.lsi
+
