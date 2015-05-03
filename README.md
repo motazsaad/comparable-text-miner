@@ -36,8 +36,10 @@ This software uses the following resources:
 - Dictionary translation demo
 ```
 python dict-demo.py <inputfile> <outputfile> <source language>
+# translate from Arabic to English
 python dict-demo.py test-text-files/dict-test-ar-input.txt test-text-files/dict-out.txt ar
-python dict-demo.py test-text-files/dict-test-en-input.txt test-text-files/dict-
+# translate from English to Arabic
+python dict-demo.py test-text-files/dict-test-en-input.txt test-text-files/dict--out.txt en
 ```
 - Arabic morphological analysis demo
 ```
