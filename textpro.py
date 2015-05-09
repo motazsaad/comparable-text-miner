@@ -50,6 +50,8 @@ from nltk.util import ngrams
 from nltk.corpus import wordnet as omw # open multilingual wordnet
 from nltk.stem.isri import ISRIStemmer
 
+import sqlite3
+
 
 import sklearn
 from sklearn.metrics import accuracy_score
@@ -690,7 +692,7 @@ where
 #$ gem install sequel mysql sqlite3
 #$ sequel mysql://user:password@host/database -C sqlite://interlanguage-links-4-2015.sqlite
 
-# sequel mysql://wiki:wiki@localhost/my_wiki_schema_short -C sqlite://interlanguage-links-4-2015.sqlite
+# sequel mysql://wiki:wiki@localhost/my_wiki_schema_get_interlanguage_links_sqlshort -C sqlite://interlanguage-links-4-2015.sqlite
 
 lang_list = ['ar', 'en', 'fr', 'es', 'it', 'de', 'fa', 'he', 'ur', 'ps', 'sd', 'ug', 'pnb', 'ckb', 'arz']
 
@@ -701,7 +703,24 @@ def get_interlanguage_links(wiki_text, language_code_list=lang_list):
 		if link: interlinks.append('[[' + code + ':' + link + ']]')
 	return interlinks	
 ##################################################################################
-
+def get_interlanguage_links_sql(doc_id, db_file):
+	interlinks = []
+	con = sqlite3.connect(db_file)
+	cur = con.cursor()
+	sql = '''
+	SELECT langlinks_arwiki_short.ll_lang, langlinks_arwiki_short.ll_title
+	FROM langlinks_arwiki_short
+	where
+    	langlinks_arwiki_short.ll_from = '%d' ''' % doc_id
+	cur.execute(sql)
+	results = cur.fetchall()
+	
+	for row in results: 
+		lang = row[0] ; title = row[1]
+		interlinks.append(lang + ':' + title)
+		print lang + ':' + title
+	return interlinks
+##################################################################################
 
 # takes a wikipedia corpus (extracted by WikiExtractor.py) and splits the corpus into documents and clean them 
 def split_wikipedia_docs(corpus_file, output_path, doc_len=6):
