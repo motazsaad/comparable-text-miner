@@ -1,5 +1,5 @@
-# coding: utf-8
-
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 '''
 # Comparable text miner
@@ -39,15 +39,16 @@ This software uses the following resources:
 '''
 
 import sys
+import os.path
 import string
+
+import nltk
 from nltk.corpus import stopwords
 from nltk.stem.wordnet import WordNetLemmatizer
 from nltk import word_tokenize, pos_tag
-import nltk
 from nltk.util import ngrams
-
+from nltk.corpus import wordnet as omw # open multilingual wordnet
 from nltk.stem.isri import ISRIStemmer
-import nltk
 
 
 import sklearn
@@ -62,14 +63,14 @@ import math
 
 from bs4 import BeautifulSoup
 
-
-
 import re
 whiteSpace = re.compile(r'\s+')
 
 #import imp
 #tp = imp.load_source('textpro', 'textpro.py')
 
+
+x_seperator = '\nXXXXXXX\n' # define document separator (7 Xs). This separator is used when all the docs are in one file (a corpus file)
 
 ##################################################################
 
@@ -495,19 +496,19 @@ def find_between(text , first, last ):
 		end = text.index( last, start )
 		return text[start:end]
 	except ValueError:
-		return ""
+		return None
 ##################################################################################
 
-def prepare_gensim_corpus(corpus_name, corpus_path, corpus_type, language, min_freq=5, doc_separator='\nXXXXXXX\n'):
+def prepare_gensim_corpus(corpus_name, corpus_path, corpus_type, language, min_freq=5, doc_separator=x_seperator):
 	
 	print 'building gensim corpus and dictionary for', corpusName, lang, 'corpora'
 	corpus_file = corpus_path + corpus_name
 	train = None
 	if corpus_type == 'comparable':
 		train = open(corpus_file).read().decode('utf-8').split(doc_separator); del train[-1]
-	elif: corpus_type == 'parallel':
+	if corpus_type == 'parallel':
 		train = open(corpus_file).read().decode('utf-8').splitlines()
-	else: print 'corpus type is not supported... The corpus should be parallel or comparable'; return None;
+	if not train: print 'corpus type is not supported... The corpus should be parallel or comparable'; return None;
 	
 	print 'loading corpus'
 	texts = [[word for word in tp.process_text(document, removePunct=True, removeSW=True, removeNum=True)] for document in train]
@@ -556,7 +557,7 @@ def build_lsi_model(corpus_name, corpus_path, topics=300):
 ##################################################################################
 
 
-def aligning_documents(corpus_path, source_corpus_name, target_corpus_name, source_language, target_language, top_n, doc_separator='\nXXXXXXX\n', model_path, model_name, output_path):
+def aligning_documents(corpus_path, source_corpus_name, target_corpus_name, source_language, target_language, top_n, model_path, model_name, output_path, doc_separator=x_seperator):
 	print 'aligning', source_corpus_name, 'with', target_corpus_name, 'using LSI'
 	
 	dictionaryFile = model_path +  model_name + '.dict'
@@ -627,9 +628,108 @@ def getComparable(source_lsi_doc, target_lsi_corpus):
 
 
 ##################################################################################
+# takses wiki text and a list of language codes, and returns the interlanguage links
+# language code list:
+# ar arabic
+# en english
+# fr french
+# es Español
+# de Deutsch
+# it Italiano
+# pt portuguese
+# fa farsi
+# ur urdo
+# he hebrew
+# ps peshto (Afghānī)
+# sd Sindhi (sindi)
+# ug Uyghur أويغورية
+# pnb punjabi (Pakistan - India)
+# ckb kurdi
+# arz egyptian
+# select * from langlinks where ll_lang = "ar" or ll_lang= "en" or ll_lang= "fr" or ll_lang= "fa" or ll_lang= "he" or ll_lang= "arz" or ll_lang= "ur" or ll_lang= "es" or ll_lang= "it" or ll_lang= "de";
+
+'''
+select 
+    langlinks_arwiki.ll_title, langlinks_arzwiki.ll_title
+from
+    langlinks_arwiki
+        INNER JOIN
+    langlinks_arzwiki
+ON
+    langlinks_arwiki.ll_from = langlinks_arzwiki.ll_from
+where 
+	langlinks_arwiki.ll_lang = 'arz' 
+	and
+	langlinks_arzwiki.ll_lang = 'ar' 
+;
+
+
+CREATE TABLE my_wiki_schema_short.langlinks_arwiki_short AS
+SELECT *
+FROM my_wiki_schema.langlinks_arwiki
+where
+    ll_lang = 'en'
+    or ll_lang = 'fr'
+    or ll_lang = 'fa'
+    or ll_lang = 'he'
+    or ll_lang = 'arz'
+    or ll_lang = 'ur'
+    or ll_lang = 'es'
+    or ll_lang = 'it'
+    or ll_lang = 'de'
+	or ll_lang = 'pt'
+	or ll_lang = 'ps'
+	or ll_lang = 'sd'
+	or ll_lang = 'ug'
+	or ll_lang = 'pnb'
+	or ll_lang = 'ckb'
+	or ll_lang = 'simple'
+;
+
+'''
+#$ gem install sequel mysql sqlite3
+#$ sequel mysql://user:password@host/database -C sqlite://interlanguage-links-4-2015.sqlite
+
+# sequel mysql://wiki:wiki@localhost/my_wiki_schema_short -C sqlite://interlanguage-links-4-2015.sqlite
+
+lang_list = ['ar', 'en', 'fr', 'es', 'it', 'de', 'fa', 'he', 'ur', 'ps', 'sd', 'ug', 'pnb', 'ckb', 'arz']
+
+def get_interlanguage_links(wiki_text, language_code_list=lang_list):
+	interlinks = []
+	for code in language_code_list:
+		link = find_between(wiki_text, '[[' + code + ':', ']]')
+		if link: interlinks.append('[[' + code + ':' + link + ']]')
+	return interlinks	
+##################################################################################
+
+
+# takes a wikipedia corpus (extracted by WikiExtractor.py) and splits the corpus into documents and clean them 
+def split_wikipedia_docs(corpus_file, output_path, doc_len=6):
+	corpus = open(file_name).read().split('</doc>')
+	print 'processing', len(corpus), 'wikipedia documents...'
+	count = 1
+	for d in corpus:
+		doc = strip_html_tags(d)
+		if len(doc.split()) > doc_len: # if the number of words in the document is greater than doc_len, then the document will be extracted
+			out = open(output_path + os.path.basename(corpus_file) + str('-%07d' % count) + '.txt', 'w')
+			print>>out, doc.encode('utf-8')
+			out.close(); count+=1
+	print count, 'documents are extracted'
+##################################################################################
 
 
 
+
+##################################################################################
+# TODO: group words according to their synset IDs
+def omw_syn(word):
+	syn = omw.synsets(word, language)[0]
+	return syn.lemma_names(lang=language)
+##################################################################################
+
+##################################################################################
+
+##################################################################################
 
 
 ##################################################################################
