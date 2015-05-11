@@ -705,8 +705,8 @@ def get_interlanguage_links(wiki_text, language_code_list=lang_list):
 ##################################################################################
 def get_interlanguage_links_sql(doc_id, db_file):
 	interlinks = []
-	con = sqlite3.connect(db_file)
-	cur = con.cursor()
+	db = sqlite3.connect(db_file)
+	cur = db.cursor()
 	sql = '''
 	SELECT langlinks_arwiki_short.ll_lang, langlinks_arwiki_short.ll_title
 	FROM langlinks_arwiki_short
@@ -714,11 +714,10 @@ def get_interlanguage_links_sql(doc_id, db_file):
     	langlinks_arwiki_short.ll_from = '%d' ''' % doc_id
 	cur.execute(sql)
 	results = cur.fetchall()
-	
 	for row in results: 
 		lang = row[0] ; title = row[1]
-		interlinks.append(lang + ':' + title)
-		print lang + ':' + title
+		interlinks.append('[[' + lang + ':' + title + ']]')
+	db.close()
 	return interlinks
 ##################################################################################
 

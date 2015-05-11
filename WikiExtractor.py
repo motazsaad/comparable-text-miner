@@ -58,6 +58,7 @@ import imp
 tp = imp.load_source('textpro', 'textpro.py') # can be obtained from https://github.com/motazsaad/comparable-text-miner
 
 
+
 #===========================================================================
 
 
@@ -421,7 +422,34 @@ class Extractor(object):
         self.magicWords['currentday'] = time.strftime('%d')
         self.magicWords['currenthour'] = time.strftime('%H')
         self.magicWords['currenttime'] = time.strftime('%H:%M:%S')
+        
+        ########################################################
+	# this code snippet is added by Motaz Saad
+	# this code snippet extracts interlanguage links in the form [[lang:title]], and append links to the wikipedia document
+	# step 1: extract links from wiki text
+	ilinks_1 = tp.get_interlanguage_links(text)
+	# step 2: extract links from the interchange links db file (sql file)
+	# this is the db file of the Arabic interlanguage links, change it to the required langage if you want
+	# sql file can be obtained from http://dumps.wikimedia.org/arwiki/20150426/arwiki-20150426-langlinks.sql.gz
+	# refer to http://dumps.wikimedia.org/ to get the sql file for the language you need
+	db_file = 'wikipedia/arwiki-interlanguage-links-4-2015.sqlite' 
+	ilinks_2 = tp.get_interlanguage_links_sql(int(self.id), db_file)
+    	ilinks = set(ilinks_1+ilinks_2) # merge them and remove duplicates
+    	#  convert links list to text
+    	arb_link = '[[ar:' + self.title + ']]\n' # interchange link for the Arabic language
+    	ilinks_text = '\nInterlanguage links:\n' + arb_link  + '\n'.join(ilinks)
+    	# this is the end of the code snippet which is added by Motaz Saad
+    	########################################################
+    	
         text = clean(self, text)
+        
+        ########################################################
+        # this code snippet is added by Motaz Saad
+        # step 3: append interlanguage to the wikipedia document (after cleaning)
+        text = text + ilinks_text
+        # this is the end of the code snippet which is added by Motaz Saad
+	########################################################
+	
         footer = "\n</doc>\n"
         if out != sys.stdout:
             out.reserve(len(header) + len(text) + len(footer))
@@ -1875,14 +1903,6 @@ def clean(extractor, text):
     Transforms wiki markup.
     @see https://www.mediawiki.org/wiki/Help:Formatting
     """
-    
-    ########################################################
-    # this code snippet is added by Motaz Saad
-    ilinks = tp.get_interlanguage_links(text)
-    ilinks_text = ''
-    for link in ilinks:
-    	ilinks_text = ilinks_text + link + '\n'
-    ########################################################
 
     if (expand_templates):
         # expand templates
@@ -1979,10 +1999,6 @@ def clean(extractor, text):
     text = re.sub(r'\n\W+?\n', '\n', text, flags=re.U) # lines with only punctuations
     text = text.replace(',,', ',').replace(',.', '.')
     
-    ########################################################
-    # this code snippet is added by Motaz Saad
-    text = text + '\nInterlanguage links:\n' + ilinks_text
-    ########################################################
 
     return text
 
