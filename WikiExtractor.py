@@ -435,9 +435,10 @@ class Extractor(object):
 	db_file = 'wikipedia/arwiki-interlanguage-links-4-2015.sqlite' 
 	ilinks_2 = tp.get_interlanguage_links_sql(int(self.id), db_file)
     	ilinks = set(ilinks_1+ilinks_2) # merge them and remove duplicates
-    	#  convert links list to text
+    	article_id = '[[id:' + self.id + ']]\n'
     	arb_link = '[[ar:' + self.title + ']]\n' # interchange link for the Arabic language
-    	ilinks_text = '\nInterlanguage links:\n' + arb_link  + '\n'.join(ilinks)
+    	#  convert links list to text
+    	ilinks_text = '\n<interlanguage_links>\n' + article_id + arb_link  + '\n'.join(ilinks) + '\n</interlanguage_links>'
     	# this is the end of the code snippet which is added by Motaz Saad
     	########################################################
     	

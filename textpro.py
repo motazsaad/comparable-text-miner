@@ -558,8 +558,7 @@ def build_lsi_model(corpus_name, corpus_path, topics=300):
 	print 'lsi model is ready'
 ##################################################################################
 
-
-def aligning_documents(corpus_path, source_corpus_name, target_corpus_name, source_language, target_language, top_n, model_path, model_name, output_path, doc_separator=x_seperator):
+def align_documents_lsi(corpus_path, source_corpus_name, target_corpus_name, source_language, target_language, top_n, model_path, model_name, output_path, doc_separator=x_seperator):
 	print 'aligning', source_corpus_name, 'with', target_corpus_name, 'using LSI'
 	
 	dictionaryFile = model_path +  model_name + '.dict'
@@ -608,6 +607,36 @@ def aligning_documents(corpus_path, source_corpus_name, target_corpus_name, sour
 	out.close();
 	print 'aligning', source_corpus_name, 'with', target_corpus_name, 'using LSI is done!'
 ##################################################################################
+
+def align_sentences_lsi(source_doc, target_doc, model_path, model_name, doc_separator=x_seperator):
+	print 'Sentence level alignment using LSI'
+	
+	dictionaryFile = model_path +  model_name + '.dict'
+	lsiFile = model_path +  model_name + '.lsi'
+
+	dictionary = corpora.Dictionary.load(dictionaryFile) ; print 'dictionary loaded'
+	lsi = models.LsiModel.load(lsiFile) ; print 'lsi model loaded'
+		
+	source_sentences = source_doc.splitlines() ; target_sentences = target_doc.splitlines()
+	
+	source_lsi_sentences = generateLSIvectors(source_sentences, dictionary, lsi); print 'projects source_sentences into LSI space'
+	target_lsi_sentences = generateLSIvectors(target_sentences, dictionary, lsi); print 'projects target_sentences into LSI space'	
+	
+	source_index = 0 	
+	new_source_doc = [] ; new_target_doc = []
+	
+	for d in source_lsi_sentences:
+		target_index, sim = getComparable(d, target_sentences)
+		allSims.append(sim)
+		source_sent = source_sentences[source_index] ; target_sent = target_sentences[target_index]
+		del target_lsi_sentences[target_index] ; del target_sentences[target_index] # remove the already aligned sentences from the target document
+		new_source_doc.append(source_sent) 
+		new_target_doc.append(target_sent)
+		if not target_lsi_sentences: break # all target sentences are aligned
+		source_index+=1
+		
+	return new_source_doc, new_target_doc
+##################################################################################
 # projecting a corpus into LSI space
 def generateLSIvectors(corpus, dictionary, lsi):
 	LSIcorpus = []
@@ -627,6 +656,8 @@ def getComparable(source_lsi_doc, target_lsi_corpus):
 	topIndex = sortedSims[0][0]
 	topSim = sortedSims[0][1]
 	return sortedSims[0]
+
+##################################################################################
 
 
 ##################################################################################
@@ -664,7 +695,6 @@ where
 	and
 	langlinks_arzwiki.ll_lang = 'ar' 
 ;
-
 
 CREATE TABLE my_wiki_schema_short.langlinks_arwiki_short AS
 SELECT *
@@ -721,6 +751,42 @@ def get_interlanguage_links_sql(doc_id, db_file):
 	return interlinks
 ##################################################################################
 
+def load_interlanguage_links(wiki_doc):
+	links = find_between(wiki_doc , '<interlanguage_links>', '</interlanguage_links>' ).splitlines()
+	return links
+
+##################################################################################
+
+def get_id_from_interlanguage_links(links):
+	doc_id = links[0]
+	doc_id = find_between(doc_id, '[[id:', ']]')
+	doc_id = int(doc_id)
+	return doc_id
+
+##################################################################################
+
+
+def aligning_documents_by_id(source_corpus_file, target_corpus_file, output_path):
+	source = split_wikipedia_docs_into_array(source_corpus_file)
+	target = split_wikipedia_docs_into_array(target_corpus_file)
+	source_id = [] ; target_id [] ; 
+	source_links = [] ; target_links = []
+	source_docs = [] ; target_docs = []
+	source_out = open(output_path +  'wiki.arb', 'w') # Arabic, change it to your source language 
+	target_out = open(output_path +  'wiki.arz', 'w') # Egyptian Arabic, change it to your target language 
+	for i in range(len(source_id)):
+		j = -1
+		try: j = target_id.index(source_id[i])
+		except: j = -1
+		if j != -1:
+			text_out = source_docs[i] + '\n' + '\n'.join(source_links[i]) + doc_separator
+			print>>source_out, text_out.encode('utf-8')
+			text_out = target_docs[j] + '\n' + '\n'.join(target_links[j]) + doc_separator
+			print>>target_out, text_out.encode('utf-8')
+			
+	print 'aliging by document IDs is done!'	
+##################################################################################
+
 # takes a wikipedia corpus (extracted by WikiExtractor.py) and splits the corpus into documents and clean them 
 def split_wikipedia_docs(corpus_file, output_path, doc_len=6):
 	corpus = open(file_name).read().split('</doc>')
@@ -733,6 +799,23 @@ def split_wikipedia_docs(corpus_file, output_path, doc_len=6):
 			print>>out, doc.encode('utf-8')
 			out.close(); count+=1
 	print count, 'documents are extracted'
+##################################################################################
+
+
+# takes a wikipedia corpus (extracted by WikiExtractor.py) and splits the corpus into documents and clean them and returns an array
+def split_wikipedia_docs_into_array(corpus_file, doc_len=6):
+	doc_id [] ; doc_links = [] ; documents = []
+	corpus = open(file_name).read().split('</doc>')
+	for d in corpus:
+		interlanguage_links = load_interlanguage_links(wiki_doc):
+		d_id = get_id_from_interlanguage_links(interlanguage_links):
+		doc = strip_html_tags(d)
+		if len(doc.split()) > doc_len: # if the number of words in the document is greater than doc_len, then the document will be extracted
+			doc_id.append(d_id)
+			doc_links.append(interlanguage_links)
+			documents.append(doc)
+			
+	return 	doc_id, doc_links, document
 ##################################################################################
 
 
@@ -751,3 +834,8 @@ def omw_syn(word):
 
 
 ##################################################################################
+
+
+
+
+
