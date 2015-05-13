@@ -769,7 +769,7 @@ def get_id_from_interlanguage_links(links):
 def aligning_documents_by_id(source_corpus_file, target_corpus_file, output_path):
 	source = split_wikipedia_docs_into_array(source_corpus_file)
 	target = split_wikipedia_docs_into_array(target_corpus_file)
-	source_id = [] ; target_id [] ; 
+	source_id = [] ; target_id = [] ; 
 	source_links = [] ; target_links = []
 	source_docs = [] ; target_docs = []
 	source_out = open(output_path +  'wiki.arb', 'w') # Arabic, change it to your source language 
@@ -804,11 +804,11 @@ def split_wikipedia_docs(corpus_file, output_path, doc_len=6):
 
 # takes a wikipedia corpus (extracted by WikiExtractor.py) and splits the corpus into documents and clean them and returns an array
 def split_wikipedia_docs_into_array(corpus_file, doc_len=6):
-	doc_id [] ; doc_links = [] ; documents = []
+	doc_id = [] ; doc_links = [] ; documents = []
 	corpus = open(file_name).read().split('</doc>')
 	for d in corpus:
-		interlanguage_links = load_interlanguage_links(wiki_doc):
-		d_id = get_id_from_interlanguage_links(interlanguage_links):
+		interlanguage_links = load_interlanguage_links(wiki_doc)
+		d_id = get_id_from_interlanguage_links(interlanguage_links)
 		doc = strip_html_tags(d)
 		if len(doc.split()) > doc_len: # if the number of words in the document is greater than doc_len, then the document will be extracted
 			doc_id.append(d_id)
