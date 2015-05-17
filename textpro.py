@@ -65,6 +65,10 @@ import math
 
 from bs4 import BeautifulSoup
 
+import logging
+logging.basicConfig(format='%(levelname)s : %(asctime)s : %(message)s', level=logging.INFO)
+
+
 import re
 whiteSpace = re.compile(r'\s+')
 
@@ -752,45 +756,45 @@ def get_interlanguage_links_sql(doc_id, db_file):
 ##################################################################################
 
 def load_interlanguage_links(wiki_doc):
-	links = find_between(wiki_doc , '<interlanguage_links>', '</interlanguage_links>' ).splitlines()
+	links = find_between(wiki_doc , '<interlanguage_links>', '</interlanguage_links>' )
 	return links
 
 ##################################################################################
 
 def get_title_from_interlanguage_links(links, language):
-	title = find_between(' '.join(links), '[[' + language + ':' , ']]')
+	title = find_between(links, '[[' + language + ':' , ']]')
 	return title
 
 ##################################################################################
 
 def aligning_documents_by_interlanguage_links(source_corpus_file, target_corpus_file, source_language, target_language, output_path):
-	print 'aliging', source_language, 'and', target_language, 'by document interlanguage links'	
-	source = split_wikipedia_docs_into_array(source_corpus_file)
-	target = split_wikipedia_docs_into_array(target_corpus_file)
-	 
-	source_links = source[0] ; target_links = target[0]
-	source_docs = source[1]  ; target_docs = target[1]
-	print 'corpora are loaded!... start aligning...'
-	source_out = open(output_path +  source_language + '.wiki', 'w') 
-	target_out = open(output_path +  target_language + '.wiki', 'w') 
+	logging.info( 'aliging %s and %s wikipeida documents using interlanguage links',  source_language, target_language)
+	source_docs = split_wikipedia_docs_into_array(source_corpus_file)
+	logging.info( 'source corpus is loaded')
+	target_docs = split_wikipedia_docs_into_array(target_corpus_file)
+	logging.info( 'target corpus is loaded')
 	
-	for i in range(len(source_links)):
-		source_title = get_title_from_interlanguage_links(source_links[i], source_language)
-		for j in range(len(target_links)):
-			target_title = get_title_from_interlanguage_links(target_links[j], target_language)
+	logging.info( 'start aligning...')
+	source_out = open(output_path +  source_language + '.wiki.txt', 'w') 
+	target_out = open(output_path +  target_language + '.wiki.txt', 'w') 
+	
+	for i in range(len(source_docs)):
+		source_title = get_title_from_interlanguage_links(source_docs[i], source_language)
+		for j in range(len(target_docs)):
+			target_title = get_title_from_interlanguage_links(target_docs[j], target_language)
 			if source_title == target_title:
-				text_out = source_docs[i] + '\n' + '\n'.join(source_links[i]) + doc_separator
+				text_out = source_docs[i] + '\n' + x_seperator
 				print>>source_out, text_out.encode('utf-8')
-				text_out = target_docs[j] + '\n' + '\n'.join(target_links[j]) + doc_separator
+				text_out = target_docs[j] + '\n' + x_seperator
 				print>>target_out, text_out.encode('utf-8')
 			
-	print 'aliging by document interlanguage links is done!'	
+	logging.info( 'aliging by document interlanguage links is done!')
 ##################################################################################
 
 # takes a wikipedia corpus (extracted by WikiExtractor.py) and splits the corpus into documents and clean them 
 def split_wikipedia_docs(corpus_file, output_path, doc_len=30):
 	corpus = open(corpus_file).read().split('</doc>')
-	print 'processing', len(corpus), 'wikipedia documents...'
+	logging.info( 'processing %d wikipedia documents...', len(corpus))
 	count = 1
 	for d in corpus:
 		doc = strip_html_tags(d)
@@ -798,22 +802,20 @@ def split_wikipedia_docs(corpus_file, output_path, doc_len=30):
 			out = open(output_path + os.path.basename(corpus_file) + str('-%07d' % count) + '.txt', 'w')
 			print>>out, doc.encode('utf-8')
 			out.close(); count+=1
-	print count, 'documents are extracted'
+	logging.info('%d documents are extracted', count)
 ##################################################################################
 
 
 # takes a wikipedia corpus (extracted by WikiExtractor.py) and splits the corpus into documents and clean them and returns an array
 def split_wikipedia_docs_into_array(corpus_file, doc_len=30):
-	doc_links = [] ; documents = []
-	corpus = open(corpus_file).read().split('</doc>')
+	documents = []
+	corpus = open(corpus_file).read().decode('utf-8').split('</doc>')
 	for d in corpus:
-		interlanguage_links = load_interlanguage_links(d)
 		doc = strip_html_tags(d)
 		if len(doc.split()) > doc_len: # if the number of words in the document is greater than doc_len, then the document will be extracted
-			doc_links.append(interlanguage_links)
 			documents.append(doc)
 			
-	return 	doc_links, document
+	return 	documents
 ##################################################################################
 
 

@@ -10,7 +10,7 @@ import sys
 
 def usage():
 	print 'Usage: ', sys.argv[0], '<source corpus file> <target corpus file> <source language> <target language> <output path>'
-	print 'python aligning-docs-demo.py ~/wikipedia/processed/arwiki-20150311-pages-articles.txt ~/wikipedia/processed/arzwiki-20150329-pages-articles.txt ar arz docs_aligned_by_links'
+	print 'python aligning-docs-demo.py ~/wikipedia/processed/arwiki-20150311-pages-articles.txt ~/wikipedia/processed/arzwiki-20150329-pages-articles.txt ar arz docs_aligned_by_links/'
 ##################################################################
 
 if len(sys.argv) < 6: usage(); sys.exit(2)
