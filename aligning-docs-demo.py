@@ -9,15 +9,15 @@ import sys
 #python aligning-docs-demo.py test-text-files/test-in.ar.txt test-text-files/test-out.ar.txt
 
 def usage():
-	print 'Usage: ', sys.argv[0], '<corpus path> <source corpus name>, <target corpus name> <source language> <target language> <top n> <lsi model path> <model name> <output path>'
-	print 'python arabic-morphological-analysis-demo.py test-text-files/test-in.ar.txt test-text-files/test-out.ar.txt'
+	print 'Usage: ', sys.argv[0], '<source corpus file> <target corpus file> <source language> <target language> <output path>'
+	print 'python aligning-docs-demo.py ~/wikipedia/processed/arwiki-20150311-pages-articles.txt ~/wikipedia/processed/arzwiki-20150329-pages-articles.txt ar arz docs_aligned_by_links'
 ##################################################################
 
-#if len(sys.argv) < 10: usage(); sys.exit(2)
+if len(sys.argv) < 6: usage(); sys.exit(2)
 
 
 '''
-This software is a demo aligning Arabic-English comparable documents using LSI model. The method is described in 
+This software is a demo aligning Arabic and Egyptian wikipeida comparable documents using interlanguage links. The method is described in 
 
 https://sites.google.com/site/motazsite/Home/publications/saad_phd.pdf
 
@@ -28,23 +28,15 @@ Motaz Saad. Mining Documents and Sentiments in Cross-lingual Context. PhD thesis
 import imp
 tp = imp.load_source('textpro', 'textpro.py')
 
-#corpus_path, source_corpus_name, target_corpus_name, source_language, target_language, top_n , model_path, model_name, output_path
-
 
 def main(argv):
-#	inputfile = sys.argv[1]
-#	outputfile = sys.argv[2]
-#	text = open(inputfile).read().decode('utf-8')
-#	word_list = tp.process_text(text) # remove diacritics and punctcutions, stopwords, and tokenize text
-#	
-#	output_text = 'apply rooting\n' + roots + '\n\n=================\napply light stemming\n' + lightStems
-#	output = open(outputfile, 'w')
-#	print>>output, output_text.encode('utf-8')
-#	output.close()
-
-	# 1st step: training 
+	source_corpus_file = sys.argv[1]
+	target_corpus_file = sys.argv[2]
+	source_language = sys.argv[3]
+	target_language = sys.argv[4]
+	output_path = sys.argv[5]
 	
-	prepare_gensim_corpus(corpus_name, corpus_path, corpus_type, language):
+	tp.aligning_documents_by_interlanguage_links(source_corpus_file, target_corpus_file, source_language, target_language, output_path)
 
 
 ##################################################################

@@ -757,39 +757,39 @@ def load_interlanguage_links(wiki_doc):
 
 ##################################################################################
 
-def get_id_from_interlanguage_links(links):
-	doc_id = links[0]
-	doc_id = find_between(doc_id, '[[id:', ']]')
-	doc_id = int(doc_id)
-	return doc_id
+def get_title_from_interlanguage_links(links, language):
+	title = find_between(' '.join(links), '[[' + language + ':' , ']]')
+	return title
 
 ##################################################################################
 
-
-def aligning_documents_by_id(source_corpus_file, target_corpus_file, output_path):
+def aligning_documents_by_interlanguage_links(source_corpus_file, target_corpus_file, source_language, target_language, output_path):
+	print 'aliging', source_language, 'and', target_language, 'by document interlanguage links'	
 	source = split_wikipedia_docs_into_array(source_corpus_file)
 	target = split_wikipedia_docs_into_array(target_corpus_file)
-	source_id = [] ; target_id = [] ; 
-	source_links = [] ; target_links = []
-	source_docs = [] ; target_docs = []
-	source_out = open(output_path +  'wiki.arb', 'w') # Arabic, change it to your source language 
-	target_out = open(output_path +  'wiki.arz', 'w') # Egyptian Arabic, change it to your target language 
-	for i in range(len(source_id)):
-		j = -1
-		try: j = target_id.index(source_id[i])
-		except: j = -1
-		if j != -1:
-			text_out = source_docs[i] + '\n' + '\n'.join(source_links[i]) + doc_separator
-			print>>source_out, text_out.encode('utf-8')
-			text_out = target_docs[j] + '\n' + '\n'.join(target_links[j]) + doc_separator
-			print>>target_out, text_out.encode('utf-8')
+	 
+	source_links = source[0] ; target_links = target[0]
+	source_docs = source[1]  ; target_docs = target[1]
+	print 'corpora are loaded!... start aligning...'
+	source_out = open(output_path +  source_language + '.wiki', 'w') 
+	target_out = open(output_path +  target_language + '.wiki', 'w') 
+	
+	for i in range(len(source_links)):
+		source_title = get_title_from_interlanguage_links(source_links[i], source_language)
+		for j in range(len(target_links)):
+			target_title = get_title_from_interlanguage_links(target_links[j], target_language)
+			if source_title == target_title:
+				text_out = source_docs[i] + '\n' + '\n'.join(source_links[i]) + doc_separator
+				print>>source_out, text_out.encode('utf-8')
+				text_out = target_docs[j] + '\n' + '\n'.join(target_links[j]) + doc_separator
+				print>>target_out, text_out.encode('utf-8')
 			
-	print 'aliging by document IDs is done!'	
+	print 'aliging by document interlanguage links is done!'	
 ##################################################################################
 
 # takes a wikipedia corpus (extracted by WikiExtractor.py) and splits the corpus into documents and clean them 
-def split_wikipedia_docs(corpus_file, output_path, doc_len=6):
-	corpus = open(file_name).read().split('</doc>')
+def split_wikipedia_docs(corpus_file, output_path, doc_len=30):
+	corpus = open(corpus_file).read().split('</doc>')
 	print 'processing', len(corpus), 'wikipedia documents...'
 	count = 1
 	for d in corpus:
@@ -803,19 +803,17 @@ def split_wikipedia_docs(corpus_file, output_path, doc_len=6):
 
 
 # takes a wikipedia corpus (extracted by WikiExtractor.py) and splits the corpus into documents and clean them and returns an array
-def split_wikipedia_docs_into_array(corpus_file, doc_len=6):
-	doc_id = [] ; doc_links = [] ; documents = []
-	corpus = open(file_name).read().split('</doc>')
+def split_wikipedia_docs_into_array(corpus_file, doc_len=30):
+	doc_links = [] ; documents = []
+	corpus = open(corpus_file).read().split('</doc>')
 	for d in corpus:
-		interlanguage_links = load_interlanguage_links(wiki_doc)
-		d_id = get_id_from_interlanguage_links(interlanguage_links)
+		interlanguage_links = load_interlanguage_links(d)
 		doc = strip_html_tags(d)
 		if len(doc.split()) > doc_len: # if the number of words in the document is greater than doc_len, then the document will be extracted
-			doc_id.append(d_id)
 			doc_links.append(interlanguage_links)
 			documents.append(doc)
 			
-	return 	doc_id, doc_links, document
+	return 	doc_links, document
 ##################################################################################
 
 
