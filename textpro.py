@@ -723,10 +723,12 @@ where
 ;
 
 '''
+# you should install dev libs for gem, mysql, sqlite3 before using the installation command below.
 #$ gem install sequel mysql sqlite3
 #$ sequel mysql://user:password@host/database -C sqlite://interlanguage-links-4-2015.sqlite
 
 # sequel mysql://wiki:wiki@localhost/my_wiki_schema_get_interlanguage_links_sqlshort -C sqlite://interlanguage-links-4-2015.sqlite
+# sequel mysql://wiki:wiki@localhost/wiki_short -C sqlite://interlanguage-links-4-2015.sqlite
 
 lang_list = ['ar', 'en', 'fr', 'es', 'it', 'de', 'fa', 'he', 'ur', 'ps', 'sd', 'ug', 'pnb', 'ckb', 'arz']
 
