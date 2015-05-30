@@ -410,6 +410,8 @@ class Extractor(object):
         self.frame = []
 
     def extract(self, out=sys.stdout):
+        global lang_code
+        
         logging.info("%s\t%s", self.id, self.title)
         text = ''.join(self.page)
         url = get_url(self.id)
@@ -429,7 +431,7 @@ class Extractor(object):
 	    # this code snippet is added by Motaz Saad
 	    # this code snippet extracts interlanguage links in the form [[lang:title]], and append links to the wikipedia document
 	    # step 1: extract links from wiki text
-	    ilinks_1 = tp.get_interlanguage_links_from_wikitext(text)
+        ilinks_1 = tp.get_interlanguage_links_from_wikitext(text)
 	    # step 2: extract links from the interchange links db file (sql file)
 	    # this is the db file of the Arabic interlanguage links, change it to the required langage if you want
 	    # sql file can be obtained from http://dumps.wikimedia.org/arwiki/20150426/arwiki-20150426-langlinks.sql.gz
@@ -437,13 +439,13 @@ class Extractor(object):
 	    #db_file = '/wikipedia/arwiki-interlanguage-links-4-2015.sqlite' # interlanguage links db of arabic wikipedia
         db_file = '../interlanguage-links/interlanguage-links-4-2015.sqlite'
         if not os.path.isfile(db_file): 
-            print db_file, 'db file does not exist, please download it from \n www'
+            print db_file, 'db file does not exist, please download it from \n http://sourceforge.net/projects/crlcl/files/corpora/wikipedia-comparable-corpora/interlanguage-links/interlanguage-links-4-2015.sqlite.7z/download'
             sys.exit(2)
-	    ilinks_2 = tp.get_interlanguage_links_sql(int(self.id), db_file, lang_code)
-	    ilinks = set(ilinks_1+ilinks_2) # merge them and remove duplicates
-	    source_link = '[[' + lang_code + ':' + self.title + ']]\n' # interchange link for the source language
+        ilinks_2 = tp.get_interlanguage_links_sql(int(self.id), db_file, lang_code)
+        ilinks = set(ilinks_1+ilinks_2) # merge them and remove duplicates
+        source_link = '[[' + lang_code + ':' + self.title + ']]\n' # interchange link for the source language
 	    #  convert links list to text
-	    ilinks_text = '\n<interlanguage_links>\n' + source_link  + '\n'.join(ilinks) + '\n</interlanguage_links>'
+        ilinks_text = '\n<interlanguage_links>\n' + source_link  + '\n'.join(ilinks) + '\n</interlanguage_links>'
 	    # this is the end of the code snippet which is added by Motaz Saad
 	    ########################################################
 	
@@ -2397,6 +2399,7 @@ minFileSize = 200 * 1024
 def main():
     global urlbase, acceptedNamespaces
     global expand_templates
+    global lang_code
 
     parser = argparse.ArgumentParser(prog=os.path.basename(sys.argv[0]),
         formatter_class=argparse.RawDescriptionHelpFormatter,
