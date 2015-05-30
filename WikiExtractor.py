@@ -57,7 +57,9 @@ This software is modified by Motaz Saad to add interlanguage links extraction fu
 import imp
 tp = imp.load_source('textpro', 'textpro.py') # can be obtained from https://github.com/motazsaad/comparable-text-miner
 
+import os.path
 
+lang_code = None
 
 #===========================================================================
 
@@ -424,23 +426,27 @@ class Extractor(object):
         self.magicWords['currenttime'] = time.strftime('%H:%M:%S')
         
         ########################################################
-	# this code snippet is added by Motaz Saad
-	# this code snippet extracts interlanguage links in the form [[lang:title]], and append links to the wikipedia document
-	# step 1: extract links from wiki text
-	ilinks_1 = tp.get_interlanguage_links(text)
-	# step 2: extract links from the interchange links db file (sql file)
-	# this is the db file of the Arabic interlanguage links, change it to the required langage if you want
-	# sql file can be obtained from http://dumps.wikimedia.org/arwiki/20150426/arwiki-20150426-langlinks.sql.gz
-	# refer to http://dumps.wikimedia.org/ to get the sql file for the language you need
-	db_file = 'wikipedia/arwiki-interlanguage-links-4-2015.sqlite' 
-	ilinks_2 = tp.get_interlanguage_links_sql(int(self.id), db_file)
-    	ilinks = set(ilinks_1+ilinks_2) # merge them and remove duplicates
-    	arb_link = '[[ar:' + self.title + ']]\n' # interchange link for the Arabic language
-    	#  convert links list to text
-    	ilinks_text = '\n<interlanguage_links>\n' + arb_link  + '\n'.join(ilinks) + '\n</interlanguage_links>'
-    	# this is the end of the code snippet which is added by Motaz Saad
-    	########################################################
-    	
+	    # this code snippet is added by Motaz Saad
+	    # this code snippet extracts interlanguage links in the form [[lang:title]], and append links to the wikipedia document
+	    # step 1: extract links from wiki text
+	    ilinks_1 = tp.get_interlanguage_links_from_wikitext(text)
+	    # step 2: extract links from the interchange links db file (sql file)
+	    # this is the db file of the Arabic interlanguage links, change it to the required langage if you want
+	    # sql file can be obtained from http://dumps.wikimedia.org/arwiki/20150426/arwiki-20150426-langlinks.sql.gz
+	    # refer to http://dumps.wikimedia.org/ to get the sql file for the language you need
+	    #db_file = '/wikipedia/arwiki-interlanguage-links-4-2015.sqlite' # interlanguage links db of arabic wikipedia
+        db_file = '../interlanguage-links/interlanguage-links-4-2015.sqlite'
+        if not os.path.isfile(db_file): 
+            print db_file, 'db file does not exist, please download it from \n www'
+            sys.exit(2)
+	    ilinks_2 = tp.get_interlanguage_links_sql(int(self.id), db_file, lang_code)
+	    ilinks = set(ilinks_1+ilinks_2) # merge them and remove duplicates
+	    source_link = '[[' + lang_code + ':' + self.title + ']]\n' # interchange link for the source language
+	    #  convert links list to text
+	    ilinks_text = '\n<interlanguage_links>\n' + source_link  + '\n'.join(ilinks) + '\n</interlanguage_links>'
+	    # this is the end of the code snippet which is added by Motaz Saad
+	    ########################################################
+	
         text = clean(self, text)
         
         ########################################################
@@ -448,7 +454,7 @@ class Extractor(object):
         # step 3: append interlanguage to the wikipedia document (after cleaning)
         text = text + ilinks_text
         # this is the end of the code snippet which is added by Motaz Saad
-	########################################################
+	    ########################################################
 	
         footer = "\n</doc>\n"
         if out != sys.stdout:
@@ -2397,6 +2403,13 @@ def main():
                                      description=__doc__)
     parser.add_argument("input",
                         help="XML wiki dump file")
+    
+    ####################################################################
+    # This code snippet is add by Motaz Saad
+    parser.add_argument("lang_code", help="language code of the source language of interlanguage links")
+    # this is the end of the code snippet which is added by Motaz Saad
+    ####################################################################
+
     groupO = parser.add_argument_group('Output')
     groupO.add_argument("-o", "--output", default="text",
                         help="output directory")
@@ -2464,6 +2477,12 @@ def main():
         logger.setLevel(logging.DEBUG)
 
     input_file = args.input
+
+    ####################################################################
+    # This code snippet is add by Motaz Saad
+    lang_code = args.lang_code
+    # this is the end of the code snippet which is added by Motaz Saad
+    ####################################################################
 
     if not Extractor.keepLinks:
         ignoreTag('a')

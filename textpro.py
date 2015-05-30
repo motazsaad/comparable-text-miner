@@ -683,71 +683,25 @@ def getComparable(source_lsi_doc, target_lsi_corpus):
 # pnb punjabi (Pakistan - India)
 # ckb kurdi
 # arz egyptian
-# select * from langlinks where ll_lang = "ar" or ll_lang= "en" or ll_lang= "fr" or ll_lang= "fa" or ll_lang= "he" or ll_lang= "arz" or ll_lang= "ur" or ll_lang= "es" or ll_lang= "it" or ll_lang= "de";
 
-'''
-select 
-    langlinks_arwiki.ll_title, langlinks_arzwiki.ll_title
-from
-    langlinks_arwiki
-        INNER JOIN
-    langlinks_arzwiki
-ON
-    langlinks_arwiki.ll_from = langlinks_arzwiki.ll_from
-where 
-	langlinks_arwiki.ll_lang = 'arz' 
-	and
-	langlinks_arzwiki.ll_lang = 'ar' 
-;
+lang_list = ['ar', 'en', 'fr', 'es', 'it', 'de', 'fa', 'he', 'ur', 'ps', 'sd', 'ug', 'pnb', 'ckb', 'arz', 'simple']
 
-CREATE TABLE my_wiki_schema_short.langlinks_arwiki_short AS
-SELECT *
-FROM my_wiki_schema.langlinks_arwiki
-where
-    ll_lang = 'en'
-    or ll_lang = 'fr'
-    or ll_lang = 'fa'
-    or ll_lang = 'he'
-    or ll_lang = 'arz'
-    or ll_lang = 'ur'
-    or ll_lang = 'es'
-    or ll_lang = 'it'
-    or ll_lang = 'de'
-	or ll_lang = 'pt'
-	or ll_lang = 'ps'
-	or ll_lang = 'sd'
-	or ll_lang = 'ug'
-	or ll_lang = 'pnb'
-	or ll_lang = 'ckb'
-	or ll_lang = 'simple'
-;
-
-'''
-# you should install dev libs for gem, mysql, sqlite3 before using the installation command below.
-#$ gem install sequel mysql sqlite3
-#$ sequel mysql://user:password@host/database -C sqlite://interlanguage-links-4-2015.sqlite
-
-# sequel mysql://wiki:wiki@localhost/my_wiki_schema_get_interlanguage_links_sqlshort -C sqlite://interlanguage-links-4-2015.sqlite
-# sequel mysql://wiki:wiki@localhost/wiki_short -C sqlite://interlanguage-links-4-2015.sqlite
-
-lang_list = ['ar', 'en', 'fr', 'es', 'it', 'de', 'fa', 'he', 'ur', 'ps', 'sd', 'ug', 'pnb', 'ckb', 'arz']
-
-def get_interlanguage_links(wiki_text, language_code_list=lang_list):
+def get_interlanguage_links_from_wikitext(wiki_text, language_code_list=lang_list):
 	interlinks = []
 	for code in language_code_list:
 		link = find_between(wiki_text, '[[' + code + ':', ']]')
 		if link: interlinks.append('[[' + code + ':' + link + ']]')
 	return interlinks	
 ##################################################################################
-def get_interlanguage_links_sql(doc_id, db_file):
+def get_interlanguage_links_sql(doc_id, db_file, lang_code):
 	interlinks = []
 	db = sqlite3.connect(db_file)
 	cur = db.cursor()
 	sql = '''
-	SELECT langlinks_arwiki_short.ll_lang, langlinks_arwiki_short.ll_title
-	FROM langlinks_arwiki_short
+	SELECT ll_lang, ll_title
+	FROM %s_langlinks
 	where
-    	langlinks_arwiki_short.ll_from = '%d' ''' % doc_id
+    	ll_from = '%d' ''' % (lang_code, doc_id)
 	cur.execute(sql)
 	results = cur.fetchall()
 	for row in results: 
@@ -763,8 +717,8 @@ def load_interlanguage_links(wiki_doc):
 
 ##################################################################################
 
-def get_title_from_interlanguage_links(links, language):
-	title = find_between(links, '[[' + language + ':' , ']]')
+def get_title_from_interlanguage_links(links, language_code):
+	title = find_between(links, '[[' + language_code + ':' , ']]')
 	return title
 
 ##################################################################################
