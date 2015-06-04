@@ -41,6 +41,7 @@ This software uses the following resources:
 import sys
 import os.path
 import string
+import collections
 
 import nltk
 from nltk.corpus import stopwords
@@ -49,6 +50,8 @@ from nltk import word_tokenize, pos_tag
 from nltk.util import ngrams
 from nltk.corpus import wordnet as omw # open multilingual wordnet
 from nltk.stem.isri import ISRIStemmer
+
+from gensim import corpora, models, similarities
 
 import sqlite3
 
@@ -505,44 +508,60 @@ def find_between(text , first, last ):
 		return None
 ##################################################################################
 
-def prepare_gensim_corpus(corpus_name, corpus_path, corpus_type, language, min_freq=5, doc_separator=x_seperator):
+def merge_source_target_docs(source_corpus, target_corpus):
+	merged_corpus = []
+	for source_doc, target_doc in zip(source_corpus, target_corpus):
+		merged_corpus.append(source_doc + target_doc)
 	
-	print 'building gensim corpus and dictionary for', corpusName, lang, 'corpora'
-	corpus_file = corpus_path + corpus_name
-	train = None
+	return merged_corpus
+
+##################################################################################
+
+def load_corpus(corpus_file, corpus_type):
+	corpus = None
+	global doc_separator
 	if corpus_type == 'comparable':
-		train = open(corpus_file).read().decode('utf-8').split(doc_separator); del train[-1]
+		corpus = open(corpus_file).read().decode('utf-8').split(doc_separator); del corpus[-1]
 	if corpus_type == 'parallel':
-		train = open(corpus_file).read().decode('utf-8').splitlines()
-	if not train: print 'corpus type is not supported... The corpus should be parallel or comparable'; return None;
+		corpus = open(corpus_file).read().decode('utf-8').splitlines()
+	if not corpus: 
+		print 'corpus type is not supported... The corpus should be parallel or comparable'
+	return corpus
+##################################################################################
+
+def prepare_gensim_corpus(corpus_name, corpus, output_path, min_freq=5):
+	if not os.path.exists(output_path): 
+		print output_path, 'does not exists... creating ....'
+		os.makedirs(output_path)
 	
-	print 'loading corpus'
-	texts = [[word for word in tp.process_text(document, removePunct=True, removeSW=True, removeNum=True)] for document in train]
-	print 'tokenizing'
-	all_tokens = [item for sublist in texts1 for item in sublist]
-	print 'mark tokens which have frequency less than', min_freq
-	tokens_once = set([k for k, v in Counter(all_tokens).iteritems() if v < min_freq ])
-	print '|D|=' , len(texts)
-	print 'filter low frequency tokens'
+	logging.info( 'building gensim corpus and dictionary for %s corpus', corpus_name )
+	logging.info( 'loading corpus' )
+	texts = [[word for word in process_text(document, removePunct=True, removeSW=True, removeNum=True)] for document in corpus]
+	logging.info( 'tokenizing' )
+	all_tokens = [item for sublist in texts for item in sublist]
+	logging.info( 'mark tokens which have frequency less than %d', min_freq )
+	tokens_once = set([k for k, v in collections.Counter(all_tokens).iteritems() if v < min_freq ])
+	logging.info( '|D|=%d' , len(texts) )
+	logging.info( 'filter low frequency tokens' )
 	texts = [[word for word in text if word not in tokens_once] for text in texts]
-	print '|D|=' , len(texts)
-	print 'building dictionary'
+	logging.info( '|D|=%d' , len(texts) )
+	logging.info( 'building dictionary' )
 	dictionary = corpora.Dictionary(texts)
-	print 'saving dictionary'
-	dictFile = corpus_file + corpusName + '.dict'
+	logging.info( 'saving dictionary' )
+	dictFile = output_path + corpus_name + '.dict'
 	dictionary.save(dictFile) 
-	print 'building corpus in  mm format'
+	logging.info( 'building corpus in  mm format' )
 	corpus = [dictionary.doc2bow(text) for text in texts]
-	print 'saving corpus'
-	corpusFile = corpus_file + corpusName + '.mm'
-	corpora.MmCorpus.serialize(corpusFile, corpus)
-	print 'computing tfidf'
+	logging.info( 'saving corpus' )
+	gensim_corpus_file = output_path + corpus_name + '.mm'
+	corpora.MmCorpus.serialize(gensim_corpus_file, corpus)
+	logging.info( 'computing tfidf' )
 	tfidf = models.TfidfModel(corpus) # tfidf model 
 	corpus_tfidf = tfidf[corpus] # tfidf corpus 
-	print 'saving tfidf corpus'
-	corpus_tfidf_file = corpus_file + corpusName + '.tfidf.mm'
+	logging.info( 'saving tfidf corpus' )
+	corpus_tfidf_file = output_path + corpus_name + '.tfidf.mm'
 	corpora.MmCorpus.serialize(corpus_tfidf_file, corpus_tfidf)
-	print 'gensim corpus is ready'
+	logging.info( 'gensim corpus is ready' )
 ##################################################################################
 	
 def build_lsi_model(corpus_name, corpus_path, topics=300):
@@ -562,7 +581,7 @@ def build_lsi_model(corpus_name, corpus_path, topics=300):
 	print 'lsi model is ready'
 ##################################################################################
 
-def align_documents_lsi(corpus_path, source_corpus_name, target_corpus_name, source_language, target_language, top_n, model_path, model_name, output_path, doc_separator=x_seperator):
+def align_documents_lsi(corpus_path, source_corpus_name, target_corpus_name, source_language, target_language, model_path, model_name, output_path, top_n=20, doc_separator=x_seperator):
 	print 'aligning', source_corpus_name, 'with', target_corpus_name, 'using LSI'
 	
 	dictionaryFile = model_path +  model_name + '.dict'
@@ -779,7 +798,7 @@ def split_wikipedia_docs_into_array(corpus_file, doc_len=30):
 
 ##################################################################################
 # TODO: group words according to their synset IDs
-def omw_syn(word):
+def omw_syn(word, language):
 	syn = omw.synsets(word, language)[0]
 	return syn.lemma_names(lang=language)
 ##################################################################################
