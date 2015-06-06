@@ -603,7 +603,8 @@ def align_documents_lsi(source_test_corpus, target_test_corpus, model_path, mode
 		target_index, sim = getComparable(d, target_lsi_corpus)
 		allSims.append(sim)
 		source_doc = source_test_corpus[source_index] ; target_doc = target_test_corpus[target_index]
-		del target_lsi_corpus[target_index] ; del target_test_corpus[target_index] # remove the already aligned document from the target corpus
+		del target_lsi_corpus[target_index] ; 
+		del target_test_corpus[target_index] # remove the already aligned document from the target corpus
 		doc_tuple.append((source_index,target_index, source_doc, target_doc))
 		if not target_lsi_corpus: break # all target docs are aligned
 		source_index+=1
@@ -627,19 +628,19 @@ def align_documents_lsi(source_test_corpus, target_test_corpus, model_path, mode
 	logging.info( 'aligning source and target documents using LSI model is done!' )
 ##################################################################################
 
-def align_sentences_lsi(source_doc, target_doc, model_path, model_name, doc_separator=x_seperator):
-	print 'Sentence level alignment using LSI'
+def align_sentences_lsi(source_sentences, target_sentences, model_path, model_name):
+	logging.info( 'Sentence level alignment using LSI' )
 	
 	dictionaryFile = model_path +  model_name + '.dict'
 	lsiFile = model_path +  model_name + '.lsi'
-
-	dictionary = corpora.Dictionary.load(dictionaryFile) ; print 'dictionary loaded'
-	lsi = models.LsiModel.load(lsiFile) ; print 'lsi model loaded'
-		
-	source_sentences = source_doc.splitlines() ; target_sentences = target_doc.splitlines()
 	
-	source_lsi_sentences = generateLSIvectors(source_sentences, dictionary, lsi); print 'projects source_sentences into LSI space'
-	target_lsi_sentences = generateLSIvectors(target_sentences, dictionary, lsi); print 'projects target_sentences into LSI space'	
+	dictionary = corpora.Dictionary.load(dictionaryFile) ; logging.info( 'dictionary loaded' )
+	lsi = models.LsiModel.load(lsiFile) ; logging.info( 'lsi model loaded' )
+	
+	source_lsi_sentences = generateLSIvectors(source_sentences, dictionary, lsi); 
+	logging.info( 'projects source_sentences into LSI space')
+	target_lsi_sentences = generateLSIvectors(target_sentences, dictionary, lsi); 
+	logging.info( 'projects target_sentences into LSI space' )
 	
 	source_index = 0 	
 	new_source_doc = [] ; new_target_doc = []
@@ -648,7 +649,8 @@ def align_sentences_lsi(source_doc, target_doc, model_path, model_name, doc_sepa
 		target_index, sim = getComparable(d, target_sentences)
 		allSims.append(sim)
 		source_sent = source_sentences[source_index] ; target_sent = target_sentences[target_index]
-		del target_lsi_sentences[target_index] ; del target_sentences[target_index] # remove the already aligned sentences from the target document
+		del target_lsi_sentences[target_index] ; 
+		del target_sentences[target_index] # remove the already aligned sentences from the target document
 		new_source_doc.append(source_sent) 
 		new_target_doc.append(target_sent)
 		if not target_lsi_sentences: break # all target sentences are aligned

@@ -12,7 +12,7 @@ def usage():
 	print 'Usage: ', sys.argv[0], '<corpus name> <source corpus file> <target corpus file> <corpus type> <model name> <working path>'
 ##################################################################
 
-if len(sys.argv) < 7: usage(); sys.exit(2)
+if len(sys.argv) < 5: usage(); sys.exit(2)
 
 '''
 This software is a demo aligning comparable documents using interlanguage links. The method is described in 
@@ -27,20 +27,18 @@ tp = imp.load_source('textpro', 'textpro.py')
 
 
 def main(argv):
-	source_test_corpus_file = sys.argv[1]
-	target_test_corpus_file = sys.argv[2]
-	corpus_type = sys.argv[3]
-	model_path = sys.argv[4]
-	model_name = sys.argv[5]
-	output_path = sys.argv[6]
+	source_doc_file = sys.argv[1]
+	target_doc_file = sys.argv[2]
+	model_path = sys.argv[3]
+	model_name = sys.argv[4]
 	
-	# aligning documents
-	source_test_corpus = tp.load_corpus(source_test_corpus_file, corpus_type)
-	target_test_corpus = tp.load_corpus(target_test_corpus_file, corpus_type)
+	source_doc = open(source_doc_file).read().decode('utf-8')
+	target_doc = open(target_doc_file).read().decode('utf-8')
 	
-	shuffle(target_test_corpus) # shuffle the corpus because it is parallel (already aligned)
+	source_sentences = tp.pretty_print(source_doc)
+	target_sentences = tp.pretty_print(target_doc)
 	
-	tp.align_documents_lsi(source_test_corpus, target_test_corpus, model_path, model_name, output_path) 
+	new_source_sent , new_target_sent = tp.align_documents_lsi(source_sentences, target_sentences, model_path, model_name, output_path) 
 
 
 ##################################################################
