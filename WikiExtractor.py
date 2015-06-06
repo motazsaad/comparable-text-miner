@@ -58,13 +58,20 @@ import imp
 tp = imp.load_source('textpro', 'textpro.py') # can be obtained from https://github.com/motazsaad/comparable-text-miner
 
 import os.path
+import sqlite3
 
 lang_code = None
 
+db_file = '../interlanguage-links/interlanguage-links-4-2015.sqlite'
+if not os.path.isfile(db_file): 
+	print db_file, '''db file does not exist, please download it from \n 
+	http://sf.net/projects/crlcl/files/corpora/wikipedia-comparable-corpora/interlanguage-links/interlanguage-links-4-2015.sqlite.7z/download'''
+	sys.exit(2)
+
+db = sqlite3.connect(db_file)
+db_cursor = db.cursor()
+
 #===========================================================================
-
-
-
 
 import sys, os.path, time
 import re                       # TODO use regex when it will be standard
@@ -411,7 +418,7 @@ class Extractor(object):
 
     def extract(self, out=sys.stdout):
         global lang_code
-        
+        global db_file
         logging.info("%s\t%s", self.id, self.title)
         text = ''.join(self.page)
         url = get_url(self.id)
@@ -433,15 +440,8 @@ class Extractor(object):
 	    # step 1: extract links from wiki text
         ilinks_1 = tp.get_interlanguage_links_from_wikitext(text)
 	    # step 2: extract links from the interchange links db file (sql file)
-	    # this is the db file of the Arabic interlanguage links, change it to the required langage if you want
-	    # sql file can be obtained from http://dumps.wikimedia.org/arwiki/20150426/arwiki-20150426-langlinks.sql.gz
-	    # refer to http://dumps.wikimedia.org/ to get the sql file for the language you need
-	    #db_file = '/wikipedia/arwiki-interlanguage-links-4-2015.sqlite' # interlanguage links db of arabic wikipedia
-        db_file = '../interlanguage-links/interlanguage-links-4-2015.sqlite'
-        if not os.path.isfile(db_file): 
-            print db_file, 'db file does not exist, please download it from \n http://sourceforge.net/projects/crlcl/files/corpora/wikipedia-comparable-corpora/interlanguage-links/interlanguage-links-4-2015.sqlite.7z/download'
-            sys.exit(2)
-        ilinks_2 = tp.get_interlanguage_links_sql(int(self.id), db_file, lang_code)
+	    # refer to http://dumps.wikimedia.org/ to get the sql file for your language
+        ilinks_2 = tp.get_interlanguage_links_sql(int(self.id), db_cursor, lang_code)
         ilinks = set(ilinks_1+ilinks_2) # merge them and remove duplicates
         source_link = '[[' + lang_code + ':' + self.title + ']]\n' # interchange link for the source language
 	    #  convert links list to text
@@ -2516,6 +2516,12 @@ def main():
 
     process_dump(input_file, args.templates, output_dir, file_size,
                  args.compress, args.threads)
+
+    ####################################################################
+    # This code snippet is add by Motaz Saad
+    db.close() # close database conncection
+    # this is the end of the code snippet which is added by Motaz Saad
+    ####################################################################
 
 if __name__ == '__main__':
     main()

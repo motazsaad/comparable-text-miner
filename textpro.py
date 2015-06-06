@@ -51,7 +51,7 @@ from nltk.util import ngrams
 from nltk.corpus import wordnet as omw # open multilingual wordnet
 from nltk.stem.isri import ISRIStemmer
 
-from gensim import corpora, models, similarities
+from gensim import corpora, models, similarities, matutils
 
 import sqlite3
 
@@ -565,49 +565,45 @@ def prepare_gensim_corpus(corpus_name, corpus, output_path, min_freq=5):
 ##################################################################################
 	
 def build_lsi_model(corpus_name, corpus_path, topics=300):
-	print 'building lsi model for', corpus_name, 'corpus'
-	dictFile = corpus_file + corpus_name + '.dict'
-	corpus_tfidf_file = corpus_file + corpus_name + '.tfidf.mm'
+	logging.info( 'building lsi model for %s corpus', corpus_name )
+	dictFile = corpus_path + corpus_name + '.dict'
+	corpus_tfidf_file = corpus_path + corpus_name + '.tfidf.mm'
 	
-	print 'loading dictionary ...'
+	logging.info( 'loading dictionary ...' )
 	dictionary = corpora.Dictionary.load(dictFile)
-	print 'loading tfidf corpus ...'
+	logging.info( 'loading tfidf corpus ...' )
 	corpus_tfidf = corpora.MmCorpus(corpus_tfidf_file)
-	print 'building lsi model'
+	logging.info( 'building lsi model' )
 	lsi = models.LsiModel(corpus_tfidf, id2word=dictionary, num_topics=topics)
-	print 'saving lsi'
-	lsiFile = corpus_file + corpus_name + '.lsi'
+	logging.info( 'saving lsi' )
+	lsiFile = corpus_path + corpus_name + '.lsi'
 	lsi.save(lsiFile)
-	print 'lsi model is ready'
+	logging.info( 'lsi model is ready' )
 ##################################################################################
 
-def align_documents_lsi(corpus_path, source_corpus_name, target_corpus_name, source_language, target_language, model_path, model_name, output_path, top_n=20, doc_separator=x_seperator):
-	print 'aligning', source_corpus_name, 'with', target_corpus_name, 'using LSI'
+def align_documents_lsi(source_test_corpus, target_test_corpus, model_path, model_name, output_path, top_n=20, doc_separator=x_seperator):
+	logging.info( 'aligning source and target documents using LSI model' )
 	
 	dictionaryFile = model_path +  model_name + '.dict'
 	lsiFile = model_path +  model_name + '.lsi'
 	
+	dictionary = corpora.Dictionary.load(dictionaryFile) ; logging.info(  'dictionary loaded' )
+	lsi = models.LsiModel.load(lsiFile) ; logging.info(  'lsi model loaded' )
 	
-	dictionary = corpora.Dictionary.load(dictionaryFile) ; print 'dictionary loaded'
-	lsi = models.LsiModel.load(lsiFile) ; print 'lsi model loaded'
-		
-	source_corpus = open(corpus_path + source_corpus_name).read().decode('utf-8').split(doc_separator) 
-	target_corpus = open(corpus_path + target_corpus_name).read().decode('utf-8').split(doc_separator) 
-	print 'source and target corpora loaded'
-	del source_corpus[-1] ; del target_corpus[-1]
-	print '# of source docs', len(source_corpus), '\t# of target docs', len(target_corpus)
+	logging.info( '# of source docs %d \t# of target docs %d', len(source_test_corpus),  len(target_test_corpus) )
 	
-	source_lsi_corpus = generateLSIvectors(source_corpus, dictionary, lsi); print 'projects source_corpus into LSI space'
-	target_lsi_corpus = generateLSIvectors(target_corpus, dictionary, lsi); print 'projects target_corpus into LSI space'	
+	source_lsi_corpus = generateLSIvectors(source_test_corpus, dictionary, lsi)
+	logging.info( 'projects source corpus into LSI space' )
+	target_lsi_corpus = generateLSIvectors(target_test_corpus, dictionary, lsi)
+	logging.info( 'projects target corpus into LSI space' )
 	
 	allSims = [] ; doc_tuple = [] ; source_index = 0 
-	
 	
 	for d in source_lsi_corpus:
 		target_index, sim = getComparable(d, target_lsi_corpus)
 		allSims.append(sim)
-		source_doc = source_corpus[source_index] ; target_doc = target_corpus[target_index]
-		del target_lsi_corpus[target_index] ; del target_corpus[target_index] # remove the already aligned document from the target corpus
+		source_doc = source_test_corpus[source_index] ; target_doc = target_test_corpus[target_index]
+		del target_lsi_corpus[target_index] ; del target_test_corpus[target_index] # remove the already aligned document from the target corpus
 		doc_tuple.append((source_index,target_index, source_doc, target_doc))
 		if not target_lsi_corpus: break # all target docs are aligned
 		source_index+=1
@@ -622,13 +618,13 @@ def align_documents_lsi(corpus_path, source_corpus_name, target_corpus_name, sou
 		srcIndx = doc_tuple[i][0] ; targetIndx = doc_tuple[i][1] ; sdoc = doc_tuple[i][2] ; tdoc = doc_tuple[i][3]
 		print count, srcIndx, targetIndx, '%0.2f' % sim
 		print>>out, count, srcIndx, targetIndx, '%0.2f' % sim
-		source_out = open(output_path + str(count) + '.' + source_language, 'w')
-		targetout = open(output_path + str(count) + '.' + target_language, 'w')
+		source_out = open(output_path + str(count) + '.source.', 'w')
+		targetout = open(output_path + str(count) + '.target.' , 'w')
 		print>>srcout, sdoc.encode('utf-8')
 		print>>targetout, tdoc.encode('utf-8')
 		srcout.close(); targetout.close(); count+=1	
 	out.close();
-	print 'aligning', source_corpus_name, 'with', target_corpus_name, 'using LSI is done!'
+	logging.info( 'aligning source and target documents using LSI model is done!' )
 ##################################################################################
 
 def align_sentences_lsi(source_doc, target_doc, model_path, model_name, doc_separator=x_seperator):
@@ -664,7 +660,7 @@ def align_sentences_lsi(source_doc, target_doc, model_path, model_name, doc_sepa
 def generateLSIvectors(corpus, dictionary, lsi):
 	LSIcorpus = []
 	for d in corpus:		
-		vec_bow = dictionary.doc2bow(tp.process_text(d))
+		vec_bow = dictionary.doc2bow(process_text(d))
 		vec_lsi = lsi[vec_bow] 
 		LSIcorpus.append(vec_lsi)
 	return LSIcorpus
@@ -712,21 +708,18 @@ def get_interlanguage_links_from_wikitext(wiki_text, language_code_list=lang_lis
 		if link: interlinks.append('[[' + code + ':' + link + ']]')
 	return interlinks	
 ##################################################################################
-def get_interlanguage_links_sql(doc_id, db_file, lang_code):
+def get_interlanguage_links_sql(doc_id, db_cursor, lang_code):
 	interlinks = []
-	db = sqlite3.connect(db_file)
-	cur = db.cursor()
 	sql = '''
 	SELECT ll_lang, ll_title
 	FROM %s_langlinks
 	where
     	ll_from = '%d' ''' % (lang_code, doc_id)
-	cur.execute(sql)
-	results = cur.fetchall()
+	db_cursor.execute(sql)
+	results = db_cursor.fetchall()
 	for row in results: 
 		lang = row[0] ; title = row[1]
 		interlinks.append('[[' + lang + ':' + title + ']]')
-	db.close()
 	return interlinks
 ##################################################################################
 
