@@ -40,7 +40,7 @@ def main(argv):
 	
 	shuffle(target_test_corpus) # shuffle the corpus because it is parallel (already aligned)
 	
-	tp.align_documents_lsi(source_test_corpus, target_test_corpus, model_path, model_name, output_path)
+	tp.align_documents_lsi(source_test_corpus, target_test_corpus, model_path, model_name, output_path) 
 
 
 ##################################################################

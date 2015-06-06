@@ -610,7 +610,7 @@ def align_documents_lsi(source_test_corpus, target_test_corpus, model_path, mode
 		
 	sortedAllSims = sorted(enumerate(allSims), key=lambda item: -item[1])
 	topNList = sortedAllSims[:top_n]
-	out = open (output + 'results.txt', 'w')
+	out = open (output_path + 'results.txt', 'w')
 	count = 0
 	print '\n#, src, target, sim'
 	for e in topNList:
@@ -618,11 +618,11 @@ def align_documents_lsi(source_test_corpus, target_test_corpus, model_path, mode
 		srcIndx = doc_tuple[i][0] ; targetIndx = doc_tuple[i][1] ; sdoc = doc_tuple[i][2] ; tdoc = doc_tuple[i][3]
 		print count, srcIndx, targetIndx, '%0.2f' % sim
 		print>>out, count, srcIndx, targetIndx, '%0.2f' % sim
-		source_out = open(output_path + str(count) + '.source.', 'w')
-		targetout = open(output_path + str(count) + '.target.' , 'w')
-		print>>srcout, sdoc.encode('utf-8')
-		print>>targetout, tdoc.encode('utf-8')
-		srcout.close(); targetout.close(); count+=1	
+		source_out = open(output_path + str(count) + '.source.txt', 'w')
+		target_out = open(output_path + str(count) + '.target.txt' , 'w')
+		print>>source_out, sdoc.encode('utf-8')
+		print>>target_out, tdoc.encode('utf-8')
+		source_out.close(); target_out.close(); count+=1	
 	out.close();
 	logging.info( 'aligning source and target documents using LSI model is done!' )
 ##################################################################################
