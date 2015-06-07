@@ -638,16 +638,15 @@ def align_sentences_lsi(source_sentences, target_sentences, model_path, model_na
 	lsi = models.LsiModel.load(lsiFile) ; logging.info( 'lsi model loaded' )
 	
 	source_lsi_sentences = generateLSIvectors(source_sentences, dictionary, lsi); 
-	logging.info( 'projects source_sentences into LSI space')
+	logging.info( 'projects source sentences into LSI space')
 	target_lsi_sentences = generateLSIvectors(target_sentences, dictionary, lsi); 
-	logging.info( 'projects target_sentences into LSI space' )
+	logging.info( 'projects target sentences into LSI space' )
 	
 	source_index = 0 	
 	new_source_doc = [] ; new_target_doc = []
 	
 	for d in source_lsi_sentences:
-		target_index, sim = getComparable(d, target_sentences)
-		allSims.append(sim)
+		target_index, sim = getComparable(d, target_lsi_sentences)
 		source_sent = source_sentences[source_index] ; target_sent = target_sentences[target_index]
 		del target_lsi_sentences[target_index] ; 
 		del target_sentences[target_index] # remove the already aligned sentences from the target document
