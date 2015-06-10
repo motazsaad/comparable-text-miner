@@ -6,18 +6,18 @@
 import sys
 ##################################################################
 #Example Usage:
-#python aligning-docs-by-interlinks-demo.py ~/wikipedia/processed/arwiki-20150311-pages-articles.txt ~/wikipedia/processed/arzwiki-20150329-pages-articles.txt ar arz docs_aligned_by_links/
+#python aligning-docs-by-interlinks-demo.py ~/wikipedia/processed/arwiki-20150311-pages-articles.txt ~/wikipedia/processed/arzwiki-20150329-pages-articles.txt ar arz ../docs_aligned_by_links/
 
 def usage():
 	print 'Usage: ', sys.argv[0], '<source corpus file> <target corpus file> <source language> <target language> <output path>'
-	print 'python aligning-docs-by-interlinks-demo.py ~/wikipedia/processed/arwiki-20150311-pages-articles.txt ~/wikipedia/processed/arzwiki-20150329-pages-articles.txt ar arz docs_aligned_by_links/'
+
 ##################################################################
 
 if len(sys.argv) < 6: usage(); sys.exit(2)
 
 
 '''
-This software is a demo aligning Arabic and Egyptian wikipeida comparable documents using interlanguage links. The method is described in 
+This software is a demo aligning wikipeida comparable documents using interlanguage links. The method is described in 
 
 https://sites.google.com/site/motazsite/Home/publications/saad_phd.pdf
 

@@ -68,8 +68,15 @@ if not os.path.isfile(db_file):
 	http://sf.net/projects/crlcl/files/corpora/wikipedia-comparable-corpora/interlanguage-links/interlanguage-links-4-2015.sqlite.7z/download'''
 	sys.exit(2)
 
-db = sqlite3.connect(db_file)
+db = sqlite3.connect(db_file, check_same_thread=False)
 db_cursor = db.cursor()
+
+	
+#import apsw 
+#mem_db_loader=apsw.Connection(db_file) 
+#connection=apsw.Connection(":memory:") 
+#connection.backup("main", mem_db_loader, "main").step() 
+#db_cursor = connection.cursor()
 
 #===========================================================================
 
