@@ -735,6 +735,8 @@ def get_title_from_interlanguage_links(links, language_code):
 ##################################################################################
 
 def aligning_documents_by_interlanguage_links(source_corpus_file, target_corpus_file, source_language, target_language, output_path):
+	global x_seperator
+	
 	check_dir(output_path): # if directory does not exist, then create
 		
 	logging.info( 'aliging %s and %s wikipeida documents using interlanguage links',  source_language, target_language)
@@ -746,7 +748,7 @@ def aligning_documents_by_interlanguage_links(source_corpus_file, target_corpus_
 	logging.info( 'start aligning...')
 	source_out = open(output_path +  source_language + '.wiki.txt', 'w') 
 	target_out = open(output_path +  target_language + '.wiki.txt', 'w') 
-	
+	count = 1
 	for i in range(len(source_docs)):
 		source_title = get_title_from_interlanguage_links(source_docs[i], source_language)
 		for j in range(len(target_docs)):
@@ -756,7 +758,9 @@ def aligning_documents_by_interlanguage_links(source_corpus_file, target_corpus_
 				print>>source_out, text_out.encode('utf-8')
 				text_out = target_docs[j] + '\n' + x_seperator
 				print>>target_out, text_out.encode('utf-8')
-			
+				logging.info( '%d documents are aligned', count)
+				count += 1
+				
 	logging.info( 'aliging by document interlanguage links is done!')
 ##################################################################################
 
