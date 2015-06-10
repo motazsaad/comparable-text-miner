@@ -530,7 +530,7 @@ def load_corpus(corpus_file, corpus_type):
 ##################################################################################
 
 def prepare_gensim_corpus(corpus_name, corpus, output_path, min_freq=5):
-	check_dir(output_path): # if directory does not exist, then create
+	check_dir(output_path) # if directory does not exist, then create
 	
 	logging.info( 'building gensim corpus and dictionary for %s corpus', corpus_name )
 	logging.info( 'loading corpus' )
@@ -737,7 +737,7 @@ def get_title_from_interlanguage_links(links, language_code):
 def aligning_documents_by_interlanguage_links(source_corpus_file, target_corpus_file, source_language, target_language, output_path):
 	global x_seperator
 	
-	check_dir(output_path): # if directory does not exist, then create
+	check_dir(output_path) # if directory does not exist, then create
 		
 	logging.info( 'aliging %s and %s wikipeida documents using interlanguage links',  source_language, target_language)
 	source_docs = split_wikipedia_docs_into_array(source_corpus_file)
