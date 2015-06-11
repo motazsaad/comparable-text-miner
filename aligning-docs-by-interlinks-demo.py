@@ -4,6 +4,7 @@
 # Author: Motaz Saad
 
 import sys
+from multiprocessing import Process
 ##################################################################
 #Example Usage:
 #python aligning-docs-by-interlinks-demo.py ~/wikipedia/processed/arwiki-20150311-pages-articles.txt ~/wikipedia/processed/arzwiki-20150329-pages-articles.txt ar arz ../docs_aligned_by_links/

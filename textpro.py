@@ -52,6 +52,9 @@ from nltk.corpus import wordnet as omw # open multilingual wordnet
 from nltk.stem.isri import ISRIStemmer
 
 from gensim import corpora, models, similarities, matutils
+from joblib import Parallel, delayed
+#Parallel(n_jobs=4)(delayed(func_name)(arg1, arg2, ...) for i in range(n))
+
 
 import sqlite3
 
@@ -766,6 +769,24 @@ def aligning_documents_by_interlanguage_links(source_corpus_file, target_corpus_
 	logging.info( 'aliging by document interlanguage links is done!')
 ##################################################################################
 
+##################################################################################
+
+def aligning_doc_by_interlanguage_links(source_doc, target_corpus, source_language, target_language, output_path):
+	
+	source = None
+	target = None
+	
+	source_title = get_title_from_interlanguage_links(source_doc, source_language)			
+		
+	for d in target_corpus:
+		target_title = get_title_from_interlanguage_links(d, target_language)
+		if source_title == target_title:
+			source = source_doc
+			target = d
+	return source, target		
+				
+##################################################################################
+
 # takes a wikipedia corpus (extracted by WikiExtractor.py) and splits the corpus into documents and clean them 
 def split_wikipedia_docs(corpus_file, output_path, doc_len=30):
 	corpus = open(corpus_file).read().split('</doc>')
@@ -786,9 +807,10 @@ def split_wikipedia_docs_into_array(corpus_file, doc_len=30):
 	documents = []
 	corpus = open(corpus_file).read().decode('utf-8').split('</doc>')
 	for d in corpus:
-		doc = strip_html_tags(d)
-		if len(doc.split()) > doc_len: # if the number of words in the document is greater than doc_len, then the document will be extracted
-			documents.append(doc)
+		#d = strip_html_tags(d)
+		# if the number of words in the document is greater than doc_len, then the document will be extracted
+		if len(d.split()) > doc_len: 
+			documents.append(d + '\n</doc>')
 			
 	return 	documents
 ##################################################################################
