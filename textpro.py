@@ -55,6 +55,7 @@ from gensim import corpora, models, similarities, matutils
 from joblib import Parallel, delayed
 #Parallel(n_jobs=4)(delayed(func_name)(arg1, arg2, ...) for i in range(n))
 
+import pyprind
 
 import sqlite3
 
@@ -754,7 +755,11 @@ def aligning_documents_by_interlanguage_links(source_corpus_file, target_corpus_
 	source_out = open(output_path +  source_language + '.wiki.txt', 'w') 
 	target_out = open(output_path +  target_language + '.wiki.txt', 'w') 
 	count = 1
+	
+	my_prperc = pyprind.ProgPercent(len(source_docs)) 
+	
 	for i in range(len(source_docs)):
+		my_prperc.update() # print progress 
 		source_title = get_title_from_interlanguage_links(source_docs[i], source_language)
 		for j in range(len(target_docs)):
 			target_title = get_title_from_interlanguage_links(target_docs[j], target_language)
@@ -763,10 +768,10 @@ def aligning_documents_by_interlanguage_links(source_corpus_file, target_corpus_
 				print>>source_out, text_out.encode('utf-8')
 				text_out = target_docs[j] + '\n' + x_seperator
 				print>>target_out, text_out.encode('utf-8')
-				logging.info( '%d documents are aligned', count)
 				count += 1
 				
-	logging.info( 'aliging by document interlanguage links is done!')
+				
+	logging.info( 'aliging by document interlanguage links is done! ... \n %d documents are aligned', count)
 ##################################################################################
 
 ##################################################################################
