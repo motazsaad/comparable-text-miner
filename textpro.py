@@ -783,6 +783,7 @@ def aligning_doc_by_interlanguage_links(source_doc, target_corpus, source_langua
 		if source_title == target_title:
 			source = source_doc
 			target = d
+			
 	return source, target		
 				
 ##################################################################################
@@ -827,7 +828,10 @@ def omw_syn(word, language):
 	syn = omw.synsets(word, language)[0]
 	return syn.lemma_names(lang=language)
 ##################################################################################
-
+def split_list(L, n_parts):
+	chunk_size = len(L) / n_parts
+	chunks=[L[x:x+chunk_size] for x in xrange(0, len(L), chunk_size)]
+	return chunks
 ##################################################################################
 
 ##################################################################################
