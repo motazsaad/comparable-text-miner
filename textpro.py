@@ -740,8 +740,7 @@ def get_title_from_interlanguage_links(links, language_code):
 ##################################################################################
 
 def aligning_documents_by_interlanguage_links(source_corpus_file, target_corpus_file, source_language, target_language, output_path):
-	global x_seperator
-	
+		
 	if not output_path.endswith('/'): output_path = output_path + '/'
 	check_dir(output_path) # if directory does not exist, then create
 		
@@ -750,6 +749,8 @@ def aligning_documents_by_interlanguage_links(source_corpus_file, target_corpus_
 	logging.info( 'source corpus is loaded')
 	target_docs = split_wikipedia_docs_into_array(target_corpus_file)
 	logging.info( 'target corpus is loaded')
+	
+	target_titles = [get_title_from_interlanguage_links(d, source_language) for d in target_docs]
 	
 	logging.info( 'start aligning...')
 	source_out = open(output_path +  source_language + '.wiki.txt', 'w') 
@@ -761,14 +762,14 @@ def aligning_documents_by_interlanguage_links(source_corpus_file, target_corpus_
 	for i in range(len(source_docs)):
 		my_prperc.update() # print progress 
 		source_title = get_title_from_interlanguage_links(source_docs[i], source_language)
-		for j in range(len(target_docs)):
-			target_title = get_title_from_interlanguage_links(target_docs[j], target_language)
-			if source_title == target_title:
-				text_out = source_docs[i] + '\n' + x_seperator
-				print>>source_out, text_out.encode('utf-8')
-				text_out = target_docs[j] + '\n' + x_seperator
-				print>>target_out, text_out.encode('utf-8')
-				count += 1
+		try: 
+			index = target_titles.index(source_title)
+			text_out = source_docs[i] 
+			print>>source_out, text_out.encode('utf-8')
+			text_out = target_docs[index]
+			print>>target_out, text_out.encode('utf-8')
+			count += 1
+		except: continue
 				
 				
 	logging.info( 'aliging by document interlanguage links is done! ... \n %d documents are aligned', count)
