@@ -753,8 +753,8 @@ def aligning_documents_by_interlanguage_links(source_corpus_file, target_corpus_
 	target_titles = [get_title_from_interlanguage_links(d, source_language) for d in target_docs]
 	
 	logging.info( 'start aligning...')
-	source_out = open(output_path +  source_language + '.wiki.txt', 'w') 
-	target_out = open(output_path +  target_language + '.wiki.txt', 'w') 
+	source_out = open(output_path +  source_language + '-wiki.txt', 'w') 
+	target_out = open(output_path +  target_language + '-wiki.txt', 'w') 
 	count = 1
 	
 	my_prperc = pyprind.ProgPercent(len(source_docs)) 
