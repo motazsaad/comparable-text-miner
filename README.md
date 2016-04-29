@@ -13,7 +13,7 @@ This software processes Arabic and English text. To use this software, load it a
 import imp
 tp = imp.load_source('textpro', 'textpro.py')
 #Then, you can use functions as follows:
-clean_text = process_text(text)
+clean_text = tp.process_text(text)
 ```
 
 # Dependencies
