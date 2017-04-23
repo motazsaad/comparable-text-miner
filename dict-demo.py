@@ -17,7 +17,7 @@ if len(sys.argv) < 4: usage(); sys.exit(2)
 
 
 '''
-Demo of Arabic-English dictrationry translation using Open Multilingual WordNet (OMW)
+Demo of Arabic-English dictionary translation using Open Multilingual WordNet (OMW)
 
 Dictionaries are obtained from Open Multilingual WordNet website: http://compling.hss.ntu.edu.sg/omw/
 
