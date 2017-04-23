@@ -5,6 +5,14 @@ we manually translated it into Arabic. The Table below describes the English and
 of synsets (synonym words are grouped into sets and called synsets), and |w| is the number of words associated with each emotion label. 
 
 
+| Tables        | Are           | Cool  |
+| ------------- |:-------------:| -----:|
+| col 3 is      | right-aligned | $1600 |
+| col 2 is      | centered      |   $12 |
+| zebra stripes | are neat      |    $1 |
+
+
+
 | Emotion  | |syn| | English |w| | Arabic |w| |
 |----------|------:|------------:|-----------:|
 | anger    |   127 |         351 |        748 |
