@@ -7,14 +7,15 @@ import sys
 #python dict-demo.py test-text-files/dict-test-en-input.txt test-text-files/dict-out.txt en 
 
 def usage():
-	print 'Usage: ', sys.argv[0], '<inputfile> <outputfile> <source language>'
-	print 'python dict-demo.py test-text-files/dict-test-ar-input.txt test-text-files/dict-out.txt ar'
-	print 'python dict-demo.py test-text-files/dict-test-en-input.txt test-text-files/dict-out.txt en'
+	print ('Usage: ', sys.argv[0], '<inputfile> <outputfile> <source language>')
+	print ('python dict-demo.py test-text-files/dict-test-ar-input.txt test-text-files/dict-out.txt ar')
+	print ('python dict-demo.py test-text-files/dict-test-en-input.txt test-text-files/dict-out.txt en')
 
 ##################################################################
 
-if len(sys.argv) < 4: usage(); sys.exit(2)
-
+if len(sys.argv) < 4:
+	usage()
+	sys.exit(2)
 
 '''
 Demo of Arabic-English dictionary translation using Open Multilingual WordNet (OMW)
@@ -27,8 +28,8 @@ Dictionaries are obtained from Open Multilingual WordNet website: http://complin
 
 '''
 
-import imp
-tp = imp.load_source('textpro', 'textpro.py')
+import importlib
+tp = importlib.load_source('textpro', 'textpro.py')
 
 
 
@@ -37,7 +38,7 @@ def main(argv):
 	inputfile = sys.argv[1]
 	outputfile = sys.argv[2]
 	source_language = sys.argv[3].strip()
-	print 'source language:', source_language
+	print ('source language:', source_language)
 	text = open(inputfile).read().decode('utf-8')
 	word_list = tp.process_text(text)
 	result = [] 
