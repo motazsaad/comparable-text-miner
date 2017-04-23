@@ -4,6 +4,7 @@ emotions according to the psychological study conducted in [Ekman, 1992].
 we manually translated it into Arabic. The Table below describes the English and the Arabic lexicons, where |syn| is the number
 of synsets (synonym words are grouped into sets and called synsets), and |w| is the number of words associated with each emotion label. 
 
+
 | Emotion  | |syn| | English |w| | Arabic |w| |
 |----------|------:|------------:|-----------:|
 | anger    |   127 |         351 |        748 |
